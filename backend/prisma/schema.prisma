@@ -1,0 +1,162 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String   @id @default(cuid())
+  ethAddress    String   @unique
+  suiAddress    String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  swaps         CrossChainSwap[]
+  limitOrders   LimitOrder[]
+  twapOrders    TWAPOrder[]
+
+  @@map("users")
+}
+
+model CrossChainSwap {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id])
+
+  fromChain       String
+  toChain         String
+  fromToken       String
+  toToken         String
+  fromAmount      String
+  toAmount        String
+
+  status          SwapStatus @default(PENDING)
+
+  ethTxHash       String?
+  suiTxHash       String?
+  ethOrderId      String?
+  suiOrderId      String?
+
+  hashlock        String
+  preimage        String?
+  timelock        DateTime
+
+  quote           Json?
+  priceImpact     Float?
+  networkFee      String?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("cross_chain_swaps")
+}
+
+model LimitOrder {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id])
+
+  chainId         Int
+  tokenIn         String
+  tokenOut        String
+  amountIn        String
+  amountOut       String
+  price           String
+
+  orderType       OrderType @default(LIMIT)
+  status          OrderStatus @default(PENDING)
+
+  orderHash       String   @unique
+  signature       String
+
+  filledAmount    String   @default("0")
+  avgFillPrice    String?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  expiresAt       DateTime?
+
+  @@map("limit_orders")
+}
+
+model TWAPOrder {
+  id                String   @id @default(cuid())
+  userId            String
+  user              User     @relation(fields: [userId], references: [id])
+
+  chainId           Int
+  tokenIn           String
+  tokenOut          String
+  totalAmount       String
+  executedAmount    String   @default("0")
+
+  intervals         Int
+  intervalDuration  Int      // in seconds
+
+  status            OrderStatus @default(PENDING)
+
+  startTime         DateTime
+  lastExecutionTime DateTime?
+
+  suiOrderHash      String?
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  executions        TWAPExecution[]
+
+  @@map("twap_orders")
+}
+
+model TWAPExecution {
+  id              String   @id @default(cuid())
+  twapOrderId     String
+  twapOrder       TWAPOrder @relation(fields: [twapOrderId], references: [id])
+
+  amount          String
+  price           String
+  txHash          String
+
+  executedAt      DateTime @default(now())
+
+  @@map("twap_executions")
+}
+
+model Portfolio {
+  id              String   @id @default(cuid())
+  userAddress     String   @unique
+
+  totalValueUSD   Float    @default(0)
+  totalPnL        Float    @default(0)
+
+  positions       Json     // Store token positions
+
+  lastUpdated     DateTime @default(now())
+
+  @@map("portfolios")
+}
+
+enum SwapStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+enum OrderStatus {
+  PENDING
+  PARTIALLY_FILLED
+  FILLED
+  CANCELLED
+  EXPIRED
+}
+
+enum OrderType {
+  LIMIT
+  TWAP
+  CONCENTRATED_LIQUIDITY
+}
