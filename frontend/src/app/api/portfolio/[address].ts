@@ -29,10 +29,8 @@ export default async function handler(
             }
 
             // Get live balances from 1inch API
-            const [ethBalances, suiBalances] = await Promise.all([
-                oneInchAPI.getWalletBalances(1, address as string),
-                // Add Sui balance fetching logic here
-            ]);
+            const ethBalances = await oneInchAPI.getWalletBalances(1, address as string);
+            // TODO: Add Sui balance fetching logic here
 
             // Calculate portfolio value
             const portfolioValue = await calculatePortfolioValue(ethBalances);
@@ -66,9 +64,10 @@ export default async function handler(
     }
 }
 
-async function calculatePortfolioValue(balances: any) {
+async function calculatePortfolioValue(balances: Record<string, unknown>) {
     // Implementation for portfolio value calculation
     // This would integrate with price APIs and calculate total value
+    console.log('Calculating portfolio value for balances:', balances);
     return {
         totalUSD: 0,
         totalPnL: 0,
