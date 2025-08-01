@@ -1,12 +1,12 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import type { Token } from '../types/token';
 
-interface Token {
-    address: string;
-    symbol: string;
-    name: string;
-    decimals: number;
-    logoURI?: string;
+interface SwapQuote {
+    toAmount: string;
+    estimatedGas: string;
+    protocols: unknown[];
+    rate?: string;
 }
 
 interface SwapState {
@@ -16,7 +16,7 @@ interface SwapState {
     toAmount: string;
     slippage: number;
     isLoading: boolean;
-    quote: any;
+    quote: SwapQuote | null;
 
     // Actions
     setFromToken: (token: Token | null) => void;
@@ -24,7 +24,7 @@ interface SwapState {
     setFromAmount: (amount: string) => void;
     setToAmount: (amount: string) => void;
     setSlippage: (slippage: number) => void;
-    setQuote: (quote: any) => void;
+    setQuote: (quote: SwapQuote | null) => void;
     setIsLoading: (loading: boolean) => void;
     swapTokens: () => void;
 }

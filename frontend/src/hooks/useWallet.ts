@@ -1,7 +1,18 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { ethers } from 'ethers';
-import { JsonRpcProvider } from '@mysten/sui.js/client';
-import { Ed25519Keypair } from '@mysten/sui.js/keypairs/ed25519';
+import { SuiClient } from '@mysten/sui/client';
+import { Ed25519Keypair } from '@mysten/sui/keypairs/ed25519';
+
+// Extend Window interface for MetaMask
+declare global {
+    interface Window {
+        ethereum?: {
+            request: (args: { method: string; params?: unknown[] }) => Promise<unknown>;
+            on: (event: string, handler: (...args: unknown[]) => void) => void;
+            removeListener: (event: string, handler: (...args: unknown[]) => void) => void;
+        };
+    }
+}
 
 interface WalletState {
     isConnected: boolean;
@@ -10,7 +21,7 @@ interface WalletState {
     ethBalance: string;
     suiBalance: string;
     ethProvider: ethers.BrowserProvider | null;
-    suiProvider: JsonRpcProvider | null;
+    suiProvider: SuiClient | null;
 }
 
 export const useWallet = () => {
@@ -47,7 +58,7 @@ export const useWallet = () => {
 
     const connectSuiWallet = async () => {
         try {
-            const provider = new JsonRpcProvider({
+            const provider = new SuiClient({
                 url: process.env.NEXT_PUBLIC_SUI_RPC_URL!
             });
 

@@ -7,7 +7,7 @@ export class OneInchAPI {
         this.apiKey = apiKey;
     }
 
-    private async request(endpoint: string, params?: Record<string, any>) {
+    private async request(endpoint: string, params?: Record<string, string | number>) {
         const url = new URL(`${ONEINCH_API_BASE}${endpoint}`);
         if (params) {
             Object.entries(params).forEach(([key, value]) => {
