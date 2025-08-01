@@ -1,5 +1,7 @@
 import { ethers } from 'ethers';
-import { SuiClient, TransactionBlock } from '@mysten/sui.js';
+import { SuiClient } from '@mysten/sui/client';
+import { Transaction } from '@mysten/sui/transactions';
+import { bcs } from '@mysten/sui/bcs';
 
 export class CrossChainTWAPService {
     private ethProvider: ethers.Provider;
@@ -10,7 +12,7 @@ export class CrossChainTWAPService {
         ethProvider: ethers.Provider,
         suiClient: SuiClient,
         twapContractAddress: string,
-        twapContractABI: any
+        twapContractABI: ethers.InterfaceAbi
     ) {
         this.ethProvider = ethProvider;
         this.suiClient = suiClient;
@@ -29,7 +31,7 @@ export class CrossChainTWAPService {
     }) {
         try {
             // Step 1: Create Ethereum TWAP order
-            const ethOrderTx = await this.twapContract.connect(params.signer).createTWAPOrder(
+            const ethOrderTx = await (this.twapContract.connect(params.signer) as any).createTWAPOrder(
                 params.tokenIn,
                 params.totalAmount,
                 params.intervals,
@@ -73,30 +75,34 @@ export class CrossChainTWAPService {
         ethOrderId: string;
         recipient: string;
     }) {
-        const tx = new TransactionBlock();
+        const tx = new Transaction();
 
+        // Note: In the new Sui SDK, parameters need proper BCS serialization
         tx.moveCall({
             target: `${process.env.NEXT_PUBLIC_SUI_PACKAGE_ID}::twap_strategy::create_cross_chain_twap`,
             arguments: [
-                tx.pure(params.tokenType),
-                tx.pure(params.totalAmount),
-                tx.pure(params.intervals),
-                tx.pure(params.intervalDuration),
-                tx.pure(Array.from(ethers.toUtf8Bytes(params.ethOrderId))),
-                tx.pure(params.recipient)
+                bcs.string().serialize(params.tokenType),
+                bcs.u64().serialize(BigInt(params.totalAmount)),
+                bcs.u32().serialize(params.intervals),
+                bcs.u64().serialize(BigInt(params.intervalDuration)),
+                bcs.vector(bcs.u8()).serialize(new Uint8Array(ethers.toUtf8Bytes(params.ethOrderId))),
+                bcs.string().serialize(params.recipient)
             ]
         });
 
-        const result = await this.suiClient.signAndExecuteTransactionBlock({
-            signer: params.recipient, // This should be the actual signer
-            transactionBlock: tx,
-            options: {
-                showEffects: true,
-                showObjectChanges: true
-            }
-        });
+        // Note: This would need proper signer/keypair integration in production
+        // For now, this is a placeholder implementation
+        try {
+            const result = await this.suiClient.signAndExecuteTransaction({
+                transaction: tx,
+                // signer would be passed from the calling context
+            } as any);
 
-        return result.digest;
+            return result.digest;
+        } catch (error) {
+            console.error('Sui transaction failed:', error);
+            throw error;
+        }
     }
 
     async executeTWAPInterval(orderId: string, intervalIndex: number) {
@@ -117,18 +123,29 @@ export class CrossChainTWAPService {
     }
 
     private async coordinateSuiExecution(ethOrderId: string, intervalIndex: number) {
-        const tx = new TransactionBlock();
+        const tx = new Transaction();
 
         tx.moveCall({
             target: `${process.env.NEXT_PUBLIC_SUI_PACKAGE_ID}::twap_strategy::execute_interval`,
             arguments: [
-                tx.pure(Array.from(ethers.toUtf8Bytes(ethOrderId))),
-                tx.pure(intervalIndex)
+                bcs.vector(bcs.u8()).serialize(new Uint8Array(ethers.toUtf8Bytes(ethOrderId))),
+                bcs.u32().serialize(intervalIndex)
             ]
         });
 
         // Execute transaction
-        // This would need proper signer integration
+        // This would need proper signer integration in production
+        try {
+            const result = await this.suiClient.signAndExecuteTransaction({
+                transaction: tx,
+                // signer would be passed from the calling context
+            } as any);
+            
+            return result.digest;
+        } catch (error) {
+            console.error('Sui coordination failed:', error);
+            throw error;
+        }
     }
 
     private mapEthTokenToSui(ethToken: string): string {

@@ -1,9 +1,10 @@
 // components/OrderCard.tsx
 import { useState } from 'react';
 import { formatDistanceToNow } from 'date-fns';
+import type { LimitOrder } from '../src/hooks/useLimitOrders';
 
 interface OrderCardProps {
-    order: any;
+    order: LimitOrder;
     onCancel: (orderId: string) => Promise<void>;
 }
 
@@ -27,7 +28,7 @@ export const OrderCard: React.FC<OrderCardProps> = ({ order, onCancel }) => {
         }
     };
 
-    const getOrderTypeIcon = (orderType: string) => {
+    const getOrderTypeIcon = (orderType?: string) => {
         switch (orderType) {
             case 'twap':
                 return (
@@ -63,24 +64,32 @@ export const OrderCard: React.FC<OrderCardProps> = ({ order, onCancel }) => {
         }
     };
 
-    const filledPercentage = order.filledAmount && order.amountIn
-        ? (parseFloat(order.filledAmount) / parseFloat(order.amountIn)) * 100
+    // Get values with fallbacks for optional properties
+    const amountIn = order.amountIn || order.fromAmount || '0';
+    const amountOut = order.amountOut || '0';
+    const price = order.price || order.targetPrice || '0';
+    const tokenInSymbol = order.tokenInSymbol || 'TOKEN';
+    const tokenOutSymbol = order.tokenOutSymbol || 'TOKEN';
+    const orderType = order.orderType || 'limit';
+
+    const filledPercentage = order.filledAmount && amountIn
+        ? (parseFloat(order.filledAmount) / parseFloat(amountIn)) * 100
         : 0;
 
     return (
         <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:shadow-md transition-shadow">
             <div className="flex items-start justify-between">
                 <div className="flex items-start space-x-3">
-                    {getOrderTypeIcon(order.orderType)}
+                    {getOrderTypeIcon(orderType)}
 
                     <div className="flex-1">
                         <div className="flex items-center space-x-2 mb-2">
                             <span className="font-medium">
-                                {parseFloat(order.amountIn).toFixed(4)} {order.tokenInSymbol}
+                                {parseFloat(amountIn).toFixed(4)} {tokenInSymbol}
                             </span>
                             <span className="text-gray-500">→</span>
                             <span className="font-medium">
-                                {parseFloat(order.amountOut).toFixed(4)} {order.tokenOutSymbol}
+                                {parseFloat(amountOut).toFixed(4)} {tokenOutSymbol}
                             </span>
                             <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(order.status)}`}>
                                 {order.status.replace('_', ' ')}
@@ -90,10 +99,10 @@ export const OrderCard: React.FC<OrderCardProps> = ({ order, onCancel }) => {
                         <div className="text-sm text-gray-600 space-y-1">
                             <div className="flex justify-between">
                                 <span>Price:</span>
-                                <span>{parseFloat(order.price).toFixed(6)} {order.tokenOutSymbol}/{order.tokenInSymbol}</span>
+                                <span>{parseFloat(price).toFixed(6)} {tokenOutSymbol}/{tokenInSymbol}</span>
                             </div>
 
-                            {order.orderType === 'twap' && (
+                            {orderType === 'twap' && (
                                 <>
                                     <div className="flex justify-between">
                                         <span>Progress:</span>
