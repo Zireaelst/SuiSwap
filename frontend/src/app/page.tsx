@@ -1,102 +1,246 @@
-import Image from "next/image";
+import React from "react";
+import { SwapInterface } from "../../components/SwapInterface";
+import { LimitOrderInterface } from "../../components/LimitOrderInterface";
+import { TWAPMonitor } from "../../components/TWAPMonitor";
+import { ActiveOrdersList } from "../../components/ActiveOrdersList";
+import { PortfolioDashboard } from "../../components/PortfolioDashboard";
 
 export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [activeTab, setActiveTab] = React.useState<'swap' | 'limit' | 'twap' | 'portfolio'>('swap');
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
+      {/* Header */}
+      <header className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <div className="flex items-center space-x-3">
+              <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-lg">K</span>
+              </div>
+              <div>
+                <h1 className="text-xl font-bold text-gray-900 dark:text-white">KATA Protocol</h1>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Cross-Chain DeFi Trading</p>
+              </div>
+            </div>
+            
+            <nav className="hidden md:flex space-x-8">
+              <button
+                onClick={() => setActiveTab('swap')}
+                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                  activeTab === 'swap'
+                    ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300'
+                    : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
+                }`}
+              >
+                Swap
+              </button>
+              <button
+                onClick={() => setActiveTab('limit')}
+                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                  activeTab === 'limit'
+                    ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300'
+                    : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
+                }`}
+              >
+                Limit Orders
+              </button>
+              <button
+                onClick={() => setActiveTab('twap')}
+                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                  activeTab === 'twap'
+                    ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300'
+                    : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
+                }`}
+              >
+                TWAP
+              </button>
+              <button
+                onClick={() => setActiveTab('portfolio')}
+                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                  activeTab === 'portfolio'
+                    ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300'
+                    : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
+                }`}
+              >
+                Portfolio
+              </button>
+            </nav>
+
+            <div className="flex items-center space-x-4">
+              <div className="text-sm text-gray-500 dark:text-gray-400">
+                Ethereum ↔ Sui
+              </div>
+              <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                Connect Wallet
+              </button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Left Column - Main Interface */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Welcome Section */}
+            {activeTab === 'swap' && (
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700">
+                <div className="mb-6">
+                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                    Cross-Chain Swaps
+                  </h2>
+                  <p className="text-gray-600 dark:text-gray-400">
+                    Execute atomic swaps between Ethereum and Sui networks with advanced order strategies.
+                  </p>
+                </div>
+                <SwapInterface />
+              </div>
+            )}
+
+            {activeTab === 'limit' && (
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700">
+                <div className="mb-6">
+                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                    Limit Orders
+                  </h2>
+                  <p className="text-gray-600 dark:text-gray-400">
+                    Set limit orders with custom price targets and expiration times.
+                  </p>
+                </div>
+                <LimitOrderInterface />
+              </div>
+            )}
+
+            {activeTab === 'twap' && (
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700">
+                <div className="mb-6">
+                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                    TWAP Orders
+                  </h2>
+                  <p className="text-gray-600 dark:text-gray-400">
+                    Time-Weighted Average Price orders for reduced slippage on large trades.
+                  </p>
+                </div>
+                <TWAPMonitor orderId="demo-twap-order-123" />
+              </div>
+            )}
+
+            {activeTab === 'portfolio' && (
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700">
+                <PortfolioDashboard />
+              </div>
+            )}
+          </div>
+
+          {/* Right Column - Active Orders */}
+          <div className="space-y-6">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                Active Orders
+              </h3>
+              <ActiveOrdersList />
+            </div>
+
+            {/* Stats Card */}
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                Protocol Stats
+              </h3>
+              <div className="space-y-4">
+                <div className="flex justify-between">
+                  <span className="text-gray-600 dark:text-gray-400">Total Volume</span>
+                  <span className="font-semibold text-gray-900 dark:text-white">$12.5M</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600 dark:text-gray-400">Active Orders</span>
+                  <span className="font-semibold text-gray-900 dark:text-white">1,247</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600 dark:text-gray-400">Supported Networks</span>
+                  <span className="font-semibold text-gray-900 dark:text-white">2</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600 dark:text-gray-400">Avg. Execution Time</span>
+                  <span className="font-semibold text-gray-900 dark:text-white">3.2s</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Features Card */}
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                Key Features
+              </h3>
+              <div className="space-y-3">
+                <div className="flex items-start space-x-3">
+                  <div className="w-2 h-2 bg-green-500 rounded-full mt-2"></div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-900 dark:text-white">Cross-Chain Atomic Swaps</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Trustless swaps between Ethereum and Sui</p>
+                  </div>
+                </div>
+                <div className="flex items-start space-x-3">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-900 dark:text-white">Advanced Order Types</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Limit orders, TWAP, and more</p>
+                  </div>
+                </div>
+                <div className="flex items-start space-x-3">
+                  <div className="w-2 h-2 bg-purple-500 rounded-full mt-2"></div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-900 dark:text-white">MEV Protection</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Built-in protection against MEV attacks</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
+
+      {/* Footer */}
+      <footer className="bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 mt-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div>
+              <div className="flex items-center space-x-3 mb-4">
+                <div className="w-6 h-6 bg-gradient-to-r from-blue-600 to-purple-600 rounded-md flex items-center justify-center">
+                  <span className="text-white font-bold text-sm">K</span>
+                </div>
+                <span className="text-lg font-bold text-gray-900 dark:text-white">KATA Protocol</span>
+              </div>
+              <p className="text-gray-600 dark:text-gray-400 text-sm">
+                Advanced cross-chain DeFi trading platform enabling efficient and secure swaps between Ethereum and Sui networks.
+              </p>
+            </div>
+            <div>
+              <h4 className="font-semibold text-gray-900 dark:text-white mb-4">Resources</h4>
+              <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+                <li><a href="#" className="hover:text-blue-600 dark:hover:text-blue-400">Documentation</a></li>
+                <li><a href="#" className="hover:text-blue-600 dark:hover:text-blue-400">API Reference</a></li>
+                <li><a href="#" className="hover:text-blue-600 dark:hover:text-blue-400">Smart Contracts</a></li>
+                <li><a href="#" className="hover:text-blue-600 dark:hover:text-blue-400">Security Audit</a></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-semibold text-gray-900 dark:text-white mb-4">Community</h4>
+              <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+                <li><a href="#" className="hover:text-blue-600 dark:hover:text-blue-400">Discord</a></li>
+                <li><a href="#" className="hover:text-blue-600 dark:hover:text-blue-400">Twitter</a></li>
+                <li><a href="#" className="hover:text-blue-600 dark:hover:text-blue-400">GitHub</a></li>
+                <li><a href="#" className="hover:text-blue-600 dark:hover:text-blue-400">Blog</a></li>
+              </ul>
+            </div>
+          </div>
+          <div className="border-t border-gray-200 dark:border-gray-700 mt-8 pt-8 text-center">
+            <p className="text-gray-600 dark:text-gray-400 text-sm">
+              © 2025 KATA Protocol. All rights reserved. Built for ETHGlobal.
+            </p>
+          </div>
+        </div>
       </footer>
     </div>
   );
