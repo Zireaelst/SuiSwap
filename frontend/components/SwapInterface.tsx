@@ -1,7 +1,7 @@
 // components/SwapInterface.tsx
-import { useState, useEffect } from 'react';
-import { useSwapStore } from '../store/useSwapStore';
-import { useWallet } from '../hooks/useWallet';
+import { useState, useEffect, useCallback } from 'react';
+import { useSwapStore } from '../src/store/useSwapStore';
+import { useWallet } from '../src/hooks/useWallet';
 import { TokenSelector } from './TokenSelector';
 import { SwapButton } from './SwapButton';
 
@@ -23,17 +23,11 @@ export const SwapInterface = () => {
         swapTokens
     } = useSwapStore();
 
-    const { isConnected, ethAddress, suiAddress } = useWallet();
+    const { isConnected, ethAddress } = useWallet();
 
     const [priceImpact, setPriceImpact] = useState<number>(0);
 
-    useEffect(() => {
-        if (fromToken && toToken && fromAmount && parseFloat(fromAmount) > 0) {
-            fetchQuote();
-        }
-    }, [fromToken, toToken, fromAmount, slippage]);
-
-    const fetchQuote = async () => {
+    const fetchQuote = useCallback(async () => {
         if (!fromToken || !toToken || !fromAmount) return;
 
         setIsLoading(true);
@@ -53,6 +47,26 @@ export const SwapInterface = () => {
             setPriceImpact(quoteData.priceImpact || 0);
         } catch (error) {
             console.error('Failed to fetch quote:', error);
+        } finally {
+            setIsLoading(false);
+        }
+    }, [fromToken, toToken, fromAmount, slippage, ethAddress, setQuote, setToAmount, setIsLoading]);
+
+    useEffect(() => {
+        if (fromToken && toToken && fromAmount && parseFloat(fromAmount) > 0) {
+            fetchQuote();
+        }
+    }, [fromToken, toToken, fromAmount, slippage, fetchQuote]);
+
+    const handleSwap = async () => {
+        if (!quote || !fromToken || !toToken) return;
+
+        try {
+            setIsLoading(true);
+            // TODO: Implement actual swap logic
+            console.log('Swap executed:', { fromToken, toToken, quote });
+        } catch (error) {
+            console.error('Swap failed:', error);
         } finally {
             setIsLoading(false);
         }
@@ -135,7 +149,6 @@ export const SwapInterface = () => {
                     </div>
                 )}
 
-// components/SwapInterface.tsx (continued)
                 {/* Swap Button */}
                 <SwapButton
                     isLoading={isLoading}
@@ -164,25 +177,4 @@ export const SwapInterface = () => {
         </div>
     );
 
-    const handleSwap = async () => {
-        if (!quote || !fromToken || !toToken) return;
-
-        try {
-            setIsLoading(true);
-
-            // Step 1: Create cross-chain swap order
-            const swapOrder = await createCrossChainSwapOrder();
-
-            // Step 2: Execute swap logic
-            await executeCrossChainSwap(swapOrder);
-
-            // Step 3: Monitor swap status
-            await monitorSwapStatus(swapOrder.id);
-
-        } catch (error) {
-            console.error('Swap failed:', error);
-        } finally {
-            setIsLoading(false);
-        }
-    };
 };

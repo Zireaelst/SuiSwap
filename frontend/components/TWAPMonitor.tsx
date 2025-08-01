@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
-import { CrossChainTWAPService } from '../services/CrossChainTWAPService';
-import { useWallet } from '../hooks/useWallet';
+import { useState, useEffect, useCallback } from 'react';
+import { CrossChainTWAPService, TWAPProgress } from '../src/services/CrossChainTWAPService';
+import { useWallet } from '../src/hooks/useWallet';
+import { SuiClient } from '@mysten/sui/client';
 
 interface TWAPMonitorProps {
     orderId: string;
@@ -8,24 +9,19 @@ interface TWAPMonitorProps {
 
 export const TWAPMonitor: React.FC<TWAPMonitorProps> = ({ orderId }) => {
     const { ethProvider } = useWallet();
-    const [progress, setProgress] = useState<any>(null);
+    const [progress, setProgress] = useState<TWAPProgress | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
-    useEffect(() => {
-        if (ethProvider && orderId) {
-            monitorProgress();
-            const interval = setInterval(monitorProgress, 30000); // Update every 30 seconds
-            return () => clearInterval(interval);
-        }
-    }, [ethProvider, orderId]);
-
-    const monitorProgress = async () => {
+    const monitorProgress = useCallback(async () => {
         try {
             setIsLoading(true);
 
+            // Mock Sui client for now - in production this would be properly initialized
+            const mockSuiClient = {} as SuiClient;
+
             const twapService = new CrossChainTWAPService(
                 ethProvider!,
-                null as any, // Sui client would be initialized here
+                mockSuiClient,
                 process.env.NEXT_PUBLIC_TWAP_CONTRACT_ADDRESS!,
                 [] // ABI would be imported
             );
@@ -38,7 +34,15 @@ export const TWAPMonitor: React.FC<TWAPMonitorProps> = ({ orderId }) => {
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [ethProvider, orderId]);
+
+    useEffect(() => {
+        if (ethProvider && orderId) {
+            monitorProgress();
+            const interval = setInterval(monitorProgress, 30000); // Update every 30 seconds
+            return () => clearInterval(interval);
+        }
+    }, [ethProvider, orderId, monitorProgress]);
 
     if (isLoading && !progress) {
         return (

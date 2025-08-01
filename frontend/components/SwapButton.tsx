@@ -1,13 +1,21 @@
 // components/SwapButton.tsx
 import { useState } from 'react';
-import { useWallet } from '../hooks/useWallet';
+import { useWallet } from '../src/hooks/useWallet';
+import type { Token } from '../src/types/token';
+
+interface SwapQuote {
+    toAmount: string;
+    estimatedGas: string;
+    protocols: unknown[];
+    rate?: string;
+}
 
 interface SwapButtonProps {
     isLoading: boolean;
     isConnected: boolean;
-    quote: any;
-    fromToken: any;
-    toToken: any;
+    quote: SwapQuote | null;
+    fromToken: Token | null;
+    toToken: Token | null;
     fromAmount: string;
     onSwap: () => Promise<void>;
 }
@@ -15,7 +23,6 @@ interface SwapButtonProps {
 export const SwapButton: React.FC<SwapButtonProps> = ({
     isLoading,
     isConnected,
-    quote,
     fromToken,
     toToken,
     fromAmount,
