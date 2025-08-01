@@ -1,4 +1,6 @@
 // components/SwapButton.tsx
+"use client";
+
 import { useState } from 'react';
 import { useWallet } from '../src/hooks/useWallet';
 import type { Token } from '../src/types/token';

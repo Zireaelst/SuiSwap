@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect, useCallback } from 'react';
 import { CrossChainTWAPService, TWAPProgress } from '../src/services/CrossChainTWAPService';
 import { useWallet } from '../src/hooks/useWallet';

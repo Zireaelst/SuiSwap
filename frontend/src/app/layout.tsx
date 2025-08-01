@@ -17,7 +17,11 @@ export const metadata: Metadata = {
   description: "Advanced cross-chain DeFi trading platform with TWAP strategies, limit orders, and atomic swaps between Ethereum and Sui networks.",
   keywords: "DeFi, cross-chain, TWAP, limit orders, Ethereum, Sui, atomic swaps, trading",
   authors: [{ name: "KATA Protocol Team" }],
-  viewport: "width=device-width, initial-scale=1",
+};
+
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
 };
 
 export default function RootLayout({

@@ -1,4 +1,6 @@
 // components/SwapInterface.tsx
+"use client";
+
 import { useState, useEffect, useCallback } from 'react';
 import { useSwapStore } from '../src/store/useSwapStore';
 import { useWallet } from '../src/hooks/useWallet';

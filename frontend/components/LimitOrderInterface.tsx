@@ -1,4 +1,6 @@
 // components/LimitOrderInterface.tsx
+"use client";
+
 import { useState, useEffect, useCallback } from 'react';
 import { useWallet } from '../src/hooks/useWallet';
 import { useLimitOrders } from '../src/hooks/useLimitOrders';

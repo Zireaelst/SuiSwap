@@ -1,4 +1,6 @@
 // components/OrderCard.tsx
+"use client";
+
 import { useState } from 'react';
 import { formatDistanceToNow } from 'date-fns';
 import type { LimitOrder } from '../src/hooks/useLimitOrders';

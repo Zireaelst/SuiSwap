@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from 'react';
 import { useLimitOrders } from '../src/hooks/useLimitOrders';
 import { OrderCard } from './OrderCard';
