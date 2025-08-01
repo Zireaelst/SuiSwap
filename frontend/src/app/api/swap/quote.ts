@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { OneInchAPI } from '../../../../backend/utils/1inch-api'; // Adjust the import path as necessary
+import { OneInchAPI } from '../../../utils/1inch-api';
 
 const oneInchAPI = new OneInchAPI(process.env.ONEINCH_API_KEY!);
 

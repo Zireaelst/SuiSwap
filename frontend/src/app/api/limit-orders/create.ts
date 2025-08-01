@@ -79,8 +79,19 @@ export default async function handler(
     }
 }
 
+interface OrderData {
+    fromToken: string;
+    toToken: string;
+    fromAmount: string;
+    targetPrice: string;
+    userAddress: string;
+    chainId: number;
+    orderType?: string;
+    expiresAt?: string | null;
+}
+
 async function validateOrderSignature(
-    orderData: any,
+    orderData: OrderData,
     signature: string,
     userAddress: string
 ): Promise<boolean> {
@@ -90,13 +101,14 @@ async function validateOrderSignature(
             signature
         );
         return recoveredAddress.toLowerCase() === userAddress.toLowerCase();
-    } catch (error) {
+    } catch {
         return false;
     }
 }
 
-async function submitLimitOrderTo1inch(order: any) {
+async function submitLimitOrderTo1inch(order: OrderData) {
     // Implementation for submitting to 1inch Limit Order Protocol
     // This would use the 1inch API to submit the order
+    console.log('Submitting order to 1inch:', order);
     return { success: true };
 }
