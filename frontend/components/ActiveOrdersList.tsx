@@ -1,10 +1,8 @@
-import { useState, useEffect } from 'react';
-import { useWallet } from '../hooks/useWallet';
-import { useLimitOrders } from '../hooks/useLimitOrders';
+import { useState } from 'react';
+import { useLimitOrders } from '../src/hooks/useLimitOrders';
 import { OrderCard } from './OrderCard';
 
 export const ActiveOrdersList = () => {
-    const { ethAddress } = useWallet();
     const { orders, cancelOrder, isLoading } = useLimitOrders();
     const [filter, setFilter] = useState<'all' | 'pending' | 'filled' | 'cancelled'>('all');
     const [sortBy, setSortBy] = useState<'created' | 'price' | 'amount'>('created');
@@ -14,9 +12,9 @@ export const ActiveOrdersList = () => {
         .sort((a, b) => {
             switch (sortBy) {
                 case 'price':
-                    return parseFloat(b.price) - parseFloat(a.price);
+                    return parseFloat(b.targetPrice) - parseFloat(a.targetPrice);
                 case 'amount':
-                    return parseFloat(b.amountIn) - parseFloat(a.amountIn);
+                    return parseFloat(b.fromAmount) - parseFloat(a.fromAmount);
                 default:
                     return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
             }
@@ -31,7 +29,7 @@ export const ActiveOrdersList = () => {
                     {/* Filter */}
                     <select
                         value={filter}
-                        onChange={(e) => setFilter(e.target.value as any)}
+                        onChange={(e) => setFilter(e.target.value as 'all' | 'pending' | 'filled' | 'cancelled')}
                         className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     >
                         <option value="all">All Orders</option>
@@ -43,7 +41,7 @@ export const ActiveOrdersList = () => {
                     {/* Sort */}
                     <select
                         value={sortBy}
-                        onChange={(e) => setSortBy(e.target.value as any)}
+                        onChange={(e) => setSortBy(e.target.value as 'created' | 'price' | 'amount')}
                         className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     >
                         <option value="created">Date Created</option>

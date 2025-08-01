@@ -1,18 +1,22 @@
 // components/LimitOrderInterface.tsx
-import { useState, useEffect } from 'react';
-import { useWallet } from '../hooks/useWallet';
-import { useLimitOrders } from '../hooks/useLimitOrders';
+import { useState, useEffect, useCallback } from 'react';
+import { useWallet } from '../src/hooks/useWallet';
+import { useLimitOrders } from '../src/hooks/useLimitOrders';
 import { TokenSelector } from './TokenSelector';
-import { PriceInput } from './PriceInput';
-import { OrderBookChart } from './OrderBookChart';
+import PriceInput from './PriceInput';
+import OrderBookChart from './OrderBookChart';
+import { TWAPOrderFields } from './TWAPOrderFields';
+import { ConcentratedLiquidityFields } from './ConcentratedLiquidityFields';
+import { ActiveOrdersList } from './ActiveOrdersList';
+import type { Token } from '../src/types/token';
 
 export const LimitOrderInterface = () => {
-    const { isConnected, ethAddress } = useWallet();
-    const { createLimitOrder, isLoading } = useLimitOrders();
+    const { isConnected } = useWallet();
+    const { createOrder, isLoading } = useLimitOrders();
 
     const [orderType, setOrderType] = useState<'limit' | 'twap' | 'concentrated'>('limit');
-    const [fromToken, setFromToken] = useState(null);
-    const [toToken, setToToken] = useState(null);
+    const [fromToken, setFromToken] = useState<Token | null>(null);
+    const [toToken, setToToken] = useState<Token | null>(null);
     const [fromAmount, setFromAmount] = useState('');
     const [targetPrice, setTargetPrice] = useState('');
     const [currentPrice, setCurrentPrice] = useState('');
@@ -27,13 +31,7 @@ export const LimitOrderInterface = () => {
     const [priceRangeMin, setPriceRangeMin] = useState('');
     const [priceRangeMax, setPriceRangeMax] = useState('');
 
-    useEffect(() => {
-        if (fromToken && toToken) {
-            fetchCurrentPrice();
-        }
-    }, [fromToken, toToken]);
-
-    const fetchCurrentPrice = async () => {
+    const fetchCurrentPrice = useCallback(async () => {
         if (!fromToken || !toToken) return;
 
         try {
@@ -53,22 +51,25 @@ export const LimitOrderInterface = () => {
         } catch (error) {
             console.error('Failed to fetch current price:', error);
         }
-    };
+    }, [fromToken, toToken, targetPrice]);
+
+    useEffect(() => {
+        if (fromToken && toToken) {
+            fetchCurrentPrice();
+        }
+    }, [fromToken, toToken, fetchCurrentPrice]);
 
     const handleCreateOrder = async () => {
         if (!fromToken || !toToken || !fromAmount || !targetPrice) return;
 
         try {
             const orderData = {
-                userAddress: ethAddress,
-                chainId: 1,
-                tokenIn: fromToken.address,
-                tokenOut: toToken.address,
-                amountIn: (parseFloat(fromAmount) * 10 ** fromToken.decimals).toString(),
-                amountOut: (parseFloat(fromAmount) * parseFloat(targetPrice) * 10 ** toToken.decimals).toString(),
-                price: targetPrice,
+                fromToken: fromToken.address,
+                toToken: toToken.address,
+                fromAmount: (parseFloat(fromAmount) * 10 ** fromToken.decimals).toString(),
+                targetPrice: targetPrice,
                 orderType,
-                expiresAt: expiresAt ? new Date(expiresAt).toISOString() : null,
+                expiresAt: expiresAt ? new Date(expiresAt) : undefined,
 
                 // TWAP specific data
                 ...(orderType === 'twap' && {
@@ -83,7 +84,7 @@ export const LimitOrderInterface = () => {
                 })
             };
 
-            await createLimitOrder(orderData);
+            await createOrder(orderData);
 
             // Reset form
             setFromAmount('');
@@ -94,6 +95,19 @@ export const LimitOrderInterface = () => {
             console.error('Failed to create limit order:', error);
         }
     };
+
+    // Mock order book data for demonstration
+    const mockBids = [
+        { price: parseFloat(currentPrice || '0') * 0.99, size: 100, total: 100 },
+        { price: parseFloat(currentPrice || '0') * 0.98, size: 200, total: 300 },
+        { price: parseFloat(currentPrice || '0') * 0.97, size: 150, total: 450 },
+    ];
+
+    const mockAsks = [
+        { price: parseFloat(currentPrice || '0') * 1.01, size: 120, total: 120 },
+        { price: parseFloat(currentPrice || '0') * 1.02, size: 180, total: 300 },
+        { price: parseFloat(currentPrice || '0') * 1.03, size: 90, total: 390 },
+    ];
 
     return (
         <div className="max-w-4xl mx-auto space-y-6">
@@ -143,7 +157,6 @@ export const LimitOrderInterface = () => {
                             <TokenSelector
                                 selectedToken={fromToken}
                                 onTokenSelect={setFromToken}
-                                chainType="ethereum"
                             />
                         </div>
 
@@ -152,7 +165,6 @@ export const LimitOrderInterface = () => {
                             <TokenSelector
                                 selectedToken={toToken}
                                 onTokenSelect={setToToken}
-                                chainType="ethereum"
                             />
                         </div>
 
@@ -172,11 +184,18 @@ export const LimitOrderInterface = () => {
                         <PriceInput
                             value={targetPrice}
                             onChange={setTargetPrice}
-                            currentPrice={currentPrice}
-                            fromToken={fromToken}
-                            toToken={toToken}
-                            priceImpact={priceImpact}
+                            placeholder={`Target price (${toToken?.symbol}/${fromToken?.symbol})`}
                         />
+
+                        {/* Price Impact Display */}
+                        {currentPrice && targetPrice && (
+                            <div className="text-sm">
+                                <span>Price Impact: </span>
+                                <span className={priceImpact > 0 ? 'text-green-500' : 'text-red-500'}>
+                                    {priceImpact.toFixed(2)}%
+                                </span>
+                            </div>
+                        )}
 
                         {/* Order Type Specific Fields */}
                         {orderType === 'twap' && (
@@ -222,14 +241,12 @@ export const LimitOrderInterface = () => {
                     {/* Right Column - Order Book & Chart */}
                     <div className="space-y-4">
                         <OrderBookChart
-                            fromToken={fromToken}
-                            toToken={toToken}
-                            currentPrice={currentPrice}
+                            bids={mockBids}
+                            asks={mockAsks}
                         />
 
                         {/* Order Summary */}
                         <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
-                            <h3 className="
                             <h3 className="font-medium mb-3">Order Summary</h3>
                            <div className="space-y-2 text-sm">
                                <div className="flex justify-between">

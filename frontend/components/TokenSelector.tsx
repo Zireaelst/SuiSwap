@@ -1,12 +1,13 @@
 // components/TokenSelector.tsx
 import { useState } from 'react';
-import { Token } from '../types/token';
-import { useTokenList } from '../hooks/useTokenList';
+import Image from 'next/image';
+import { Token } from '../src/types/token';
+import { useTokenList } from '../src/hooks/useTokenList';
 
 interface TokenSelectorProps {
     selectedToken: Token | null;
     onTokenSelect: (token: Token) => void;
-    chainType: 'ethereum' | 'sui';
+    chainType?: 'ethereum' | 'sui';
 }
 
 export const TokenSelector: React.FC<TokenSelectorProps> = ({
@@ -16,12 +17,30 @@ export const TokenSelector: React.FC<TokenSelectorProps> = ({
 }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
-    const { tokens, isLoading, searchTokens } = useTokenList(chainType);
+    const { tokens, isLoading } = useTokenList();
 
-    const filteredTokens = tokens.filter(token =>
-        token.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        token.symbol.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    // Filter tokens based on chain type
+    const getFilteredTokens = () => {
+        let filteredTokens = tokens.filter(token =>
+            token.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            token.symbol.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+
+        // Filter by chain type if specified
+        if (chainType) {
+            if (chainType === 'ethereum') {
+                filteredTokens = filteredTokens.filter(token => token.chainId === 1);
+            } else if (chainType === 'sui') {
+                // For Sui, we'll use a different chainId or address format
+                // For now, we'll show all tokens since the current token list is Ethereum-focused
+                // TODO: Add proper Sui token support
+            }
+        }
+
+        return filteredTokens;
+    };
+
+    const filteredTokens = getFilteredTokens();
 
     return (
         <div className="relative">
@@ -31,10 +50,12 @@ export const TokenSelector: React.FC<TokenSelectorProps> = ({
             >
                 {selectedToken ? (
                     <>
-                        <img
+                        <Image
                             src={selectedToken.logoURI || '/default-token.svg'}
                             alt={selectedToken.symbol}
-                            className="w-6 h-6 rounded-full"
+                            width={24}
+                            height={24}
+                            className="rounded-full"
                         />
                         <span className="font-medium">{selectedToken.symbol}</span>
                     </>
@@ -72,10 +93,12 @@ export const TokenSelector: React.FC<TokenSelectorProps> = ({
                                     }}
                                     className="w-full flex items-center space-x-3 px-3 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                                 >
-                                    <img
+                                    <Image
                                         src={token.logoURI || '/default-token.svg'}
                                         alt={token.symbol}
-                                        className="w-8 h-8 rounded-full"
+                                        width={32}
+                                        height={32}
+                                        className="rounded-full"
                                     />
                                     <div className="flex-1 text-left">
                                         <div className="font-medium">{token.symbol}</div>
