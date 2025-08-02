@@ -1,20 +1,15 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const inter = Inter({
   subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+  variable: "--font-inter",
 });
 
 export const metadata: Metadata = {
-  title: "KATA Protocol - Cross-Chain DeFi Trading",
-  description: "Advanced cross-chain DeFi trading platform with TWAP strategies, limit orders, and atomic swaps between Ethereum and Sui networks.",
+  title: "KATA Protocol - Advanced DeFi Trading",
+  description: "Programmable trading strategies with cross-chain capabilities, limit orders, and TWAP execution.",
   keywords: "DeFi, cross-chain, TWAP, limit orders, Ethereum, Sui, atomic swaps, trading",
   authors: [{ name: "KATA Protocol Team" }],
 };
@@ -30,11 +25,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" className="dark">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${inter.variable} min-h-screen bg-background text-foreground antialiased font-sans`}
       >
-        {children}
+        <div className="relative flex min-h-screen flex-col">
+          <div className="grid-background fixed inset-0 -z-20" />
+          {children}
+        </div>
       </body>
     </html>
   );
