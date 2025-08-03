@@ -1,4 +1,4 @@
-const ONEINCH_API_BASE = 'https://api.1inch.dev';
+const ONEINCH_API_BASE = 'http://localhost:5001/api/1inch'; // Use backend proxy
 
 export interface TokenInfo {
     address: string;
@@ -48,11 +48,10 @@ export interface ChartData {
 }
 
 export class OneInchAPI {
-    private apiKey: string;
     private rateLimitDelay: number = 1000; // 1 second delay for rate limiting
 
-    constructor(apiKey: string) {
-        this.apiKey = apiKey;
+    constructor() {
+        // API key is handled by the backend
     }
 
     private async delay(ms: number): Promise<void> {
@@ -60,12 +59,11 @@ export class OneInchAPI {
     }
 
     private async request(endpoint: string, params?: Record<string, unknown>, method: 'GET' | 'POST' = 'GET') {
-        const url = new URL(`${ONEINCH_API_BASE}${endpoint}`);
+        const url = new URL(`${ONEINCH_API_BASE}${endpoint}`, window.location.origin);
         
         const options: RequestInit = {
             method,
             headers: {
-                'Authorization': `Bearer ${this.apiKey}`,
                 'accept': 'application/json',
                 'Content-Type': 'application/json'
             }
@@ -81,10 +79,22 @@ export class OneInchAPI {
             options.body = JSON.stringify(params);
         }
 
+        console.log('Making proxy API request:', {
+            url: url.toString(),
+            method
+        });
+
         const response = await fetch(url.toString(), options);
+
+        console.log('Proxy API response:', {
+            status: response.status,
+            statusText: response.statusText,
+            ok: response.ok
+        });
 
         if (!response.ok) {
             const errorText = await response.text();
+            console.error('Proxy API Error Response:', errorText);
             throw new Error(`API request failed: ${response.status} ${response.statusText} - ${errorText}`);
         }
 
@@ -101,10 +111,7 @@ export class OneInchAPI {
     }
 
     async getTokenPrices(chainId: number, tokenAddresses: string[]) {
-        if (tokenAddresses.length === 1) {
-            return this.request(`/price/v1.1/${chainId}/${tokenAddresses[0]}`);
-        }
-        return this.request(`/price/v1.1/${chainId}/${tokenAddresses.join(',')}`);
+        return this.request(`/prices/${chainId}/${tokenAddresses.join(',')}`);
     }
 
     async getRequestedTokenPrices(chainId: number, tokens: string[]) {
@@ -136,7 +143,7 @@ export class OneInchAPI {
     // ==================== BALANCE API ====================
     
     async getWalletBalances(chainId: number, walletAddress: string): Promise<TokenBalance> {
-        return this.request(`/balance/v1.2/${chainId}/balances/${walletAddress}`);
+        return this.request(`/balances/${chainId}/${walletAddress}`);
     }
 
     // ==================== HISTORY API ====================
@@ -151,10 +158,10 @@ export class OneInchAPI {
 
     // ==================== PORTFOLIO API ====================
     
-    async getCurrentValue(walletAddress: string, chainId: number = 1) {
-        return this.request(`/portfolio/portfolio/v4/overview/erc20/current_value`, {
-            addresses: walletAddress,
-            chain_id: chainId
+    async getPortfolioValue(addresses: string[], chainId: number = 1): Promise<PortfolioData> {
+        return this.request('/portfolio/current_value', {
+            addresses: addresses.join(','),
+            chain_id: chainId.toString()
         });
     }
 
@@ -248,18 +255,16 @@ export class OneInchAPI {
     }
 
     async getCompleteWalletData(walletAddress: string, chainId: number = 1) {
-        const [balances, history, currentValue, tokenDetails] = await Promise.all([
+        const [balances, history, currentValue] = await Promise.all([
             this.getWalletBalances(chainId, walletAddress),
             this.getWalletHistory(walletAddress, chainId),
-            this.getCurrentValue(walletAddress, chainId),
-            this.getTokenDetails(walletAddress, chainId)
+            this.getPortfolioValue([walletAddress], chainId)
         ]);
 
         return {
             balances,
             history,
-            currentValue,
-            tokenDetails
+            currentValue
         };
     }
 }
@@ -267,13 +272,9 @@ export class OneInchAPI {
 // Export a singleton instance for ease of use
 let oneInchAPIInstance: OneInchAPI | null = null;
 
-export const getOneInchAPI = (apiKey?: string): OneInchAPI => {
-    if (!oneInchAPIInstance && apiKey) {
-        oneInchAPIInstance = new OneInchAPI(apiKey);
-    }
-    
+export const getOneInchAPI = (): OneInchAPI => {
     if (!oneInchAPIInstance) {
-        throw new Error('OneInch API not initialized. Please provide an API key.');
+        oneInchAPIInstance = new OneInchAPI();
     }
     
     return oneInchAPIInstance;
