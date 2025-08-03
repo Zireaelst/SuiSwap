@@ -2,13 +2,14 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { NavigationHeader } from "@/components/NavigationHeader";
-import { ModernSwapInterface } from "@/components/ModernSwapInterface";
+import { EnhancedSwapInterface } from "@/components/EnhancedSwapInterface";
 import { BackgroundBeams } from "@/components/ui/background-beams";
 import { Spotlight } from "@/components/ui/spotlight";
 import { FloatingDock } from "@/components/ui/floating-dock";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useTokenPrices } from "@/hooks/useOneInchData";
 import { 
   BarChart3, 
   TrendingUp, 
@@ -23,8 +24,57 @@ import {
   CheckCircle,
   Globe,
   Lock,
-  Layers
+  Layers,
+  Sparkles
 } from "lucide-react";
+
+// Live market data component
+const LiveMarketData = () => {
+  const popularTokens = [
+    '0x111111111117dc0aa78b770fa6a738034120c302', // 1INCH
+    '0xA0b86a33E6441b9c0Ec4AD851c1e4Ec3C02Db0b2', // USDC
+    '0xdAC17F958D2ee523a2206206994597C13D831ec7', // USDT
+    '0x6B175474E89094C44Da98b954EedeAC495271d0F', // DAI
+  ];
+
+  const apiKey = process.env.NEXT_PUBLIC_ONEINCH_API_KEY || '';
+  const { prices, loading } = useTokenPrices(1, popularTokens, apiKey);
+
+  const tokenNames = {
+    '0x111111111117dc0aa78b770fa6a738034120c302': '1INCH',
+    '0xA0b86a33E6441b9c0Ec4AD851c1e4Ec3C02Db0b2': 'USDC',
+    '0xdAC17F958D2ee523a2206206994597C13D831ec7': 'USDT',
+    '0x6B175474E89094C44Da98b954EedeAC495271d0F': 'DAI',
+  };
+
+  if (!apiKey || loading) {
+    return (
+      <div className="flex items-center space-x-4 animate-pulse">
+        <div className="h-4 bg-gray-200 rounded w-20"></div>
+        <div className="h-4 bg-gray-200 rounded w-16"></div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex items-center space-x-6 text-sm">
+      {Object.entries(prices).slice(0, 3).map(([address, price]) => (
+        <motion.div
+          key={address}
+          className="flex items-center space-x-2"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <span className="text-muted-foreground">{tokenNames[address as keyof typeof tokenNames]}:</span>
+          <span className="font-medium text-green-500">
+            ${typeof price === 'number' ? price.toFixed(4) : 'N/A'}
+          </span>
+        </motion.div>
+      ))}
+    </div>
+  );
+};
 
 const statsCards = [
   {
@@ -35,7 +85,7 @@ const statsCards = [
     color: "text-green-500"
   },
   {
-    title: "Active Users",
+    title: "Active Users", 
     value: "12,847",
     change: "+25.2%",
     icon: Activity,
@@ -119,6 +169,20 @@ export default function HomePage() {
                   Experience the future of DeFi with programmable trading strategies, 
                   cross-chain swaps, and advanced order types powered by KATA Protocol.
                 </motion.p>
+
+                {/* Live Market Data Integration */}
+                <motion.div
+                  className="p-4 glassmorphism rounded-xl border border-white/10"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.45 }}
+                >
+                  <div className="flex items-center space-x-2 mb-2">
+                    <Sparkles className="h-4 w-4 text-blue-400" />
+                    <span className="text-sm font-medium text-blue-400">Live Market Data</span>
+                  </div>
+                  <LiveMarketData />
+                </motion.div>
               </div>
 
               {/* Feature Highlights */}
@@ -157,7 +221,7 @@ export default function HomePage() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
             >
-              <ModernSwapInterface />
+              <EnhancedSwapInterface />
             </motion.div>
           </div>
         </div>

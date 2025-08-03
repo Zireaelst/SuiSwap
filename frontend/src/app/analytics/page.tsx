@@ -11,8 +11,6 @@ import {
   Line,
   AreaChart,
   Area,
-  BarChart,
-  Bar,
   PieChart,
   Pie,
   Cell,
@@ -108,7 +106,7 @@ const topTokens = [
 
 export default function AnalyticsPage() {
   return (
-    <main className="relative min-h-screen">
+    <main className="relative min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-950">
       <BackgroundBeams />
       <NavigationHeader />
 
@@ -116,25 +114,17 @@ export default function AnalyticsPage() {
         <div className="mx-auto max-w-7xl">
           {/* Header */}
           <motion.div
-            className="mb-12"
+            className="mb-12 text-center"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h1 className="text-3xl md:text-4xl font-bold mb-2">
-                  Protocol <span className="gradient-text">Analytics</span>
-                </h1>
-                <p className="text-muted-foreground">
-                  Real-time insights and performance metrics
-                </p>
-              </div>
-              <Badge variant="secondary" className="glassmorphism">
-                <Activity className="h-3 w-3 mr-1" />
-                Live Data
-              </Badge>
-            </div>
+            <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+              Protocol Analytics
+            </h1>
+            <p className="text-gray-400 text-lg">
+              Real-time insights powered by 1inch API integration
+            </p>
           </motion.div>
 
           {/* Stats Grid */}
@@ -146,9 +136,9 @@ export default function AnalyticsPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: index * 0.1 }}
               >
-                <Card className="glassmorphism border-0 hover-lift">
+                <Card className="backdrop-blur-sm bg-white/5 border-white/20 hover:bg-white/10 transition-all duration-300">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium text-muted-foreground">
+                    <CardTitle className="text-sm font-medium text-gray-400">
                       {stat.title}
                     </CardTitle>
                     <stat.icon className={`h-4 w-4 ${stat.color}`} />
@@ -166,7 +156,7 @@ export default function AnalyticsPage() {
                       }`}>
                         {stat.change}
                       </span>
-                      <span className="text-xs text-muted-foreground">from yesterday</span>
+                      <span className="text-xs text-gray-500">from yesterday</span>
                     </div>
                   </CardContent>
                 </Card>
@@ -183,9 +173,9 @@ export default function AnalyticsPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.4 }}
             >
-              <Card className="glassmorphism border-0">
+                            <Card className="backdrop-blur-sm bg-white/5 border-white/20">
                 <CardHeader>
-                  <CardTitle className="flex items-center space-x-2">
+                  <CardTitle className="text-white flex items-center gap-2">
                     <BarChart3 className="h-5 w-5" />
                     <span>Trading Volume</span>
                   </CardTitle>
@@ -194,27 +184,28 @@ export default function AnalyticsPage() {
                   <ResponsiveContainer width="100%" height={300}>
                     <AreaChart data={volumeData}>
                       <defs>
-                        <linearGradient id="volumeGradient" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.8} />
-                          <stop offset="95%" stopColor="#3B82F6" stopOpacity={0.1} />
+                        <linearGradient id="colorVolume" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.8}/>
+                          <stop offset="95%" stopColor="#3B82F6" stopOpacity={0.1}/>
                         </linearGradient>
                       </defs>
-                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
-                      <XAxis dataKey="name" stroke="rgba(255,255,255,0.5)" />
-                      <YAxis stroke="rgba(255,255,255,0.5)" />
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor: "rgba(0,0,0,0.8)",
-                          border: "1px solid rgba(255,255,255,0.1)",
-                          borderRadius: "8px",
-                        }}
+                      <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                      <XAxis dataKey="name" stroke="#9CA3AF" />
+                      <YAxis stroke="#9CA3AF" />
+                      <Tooltip 
+                        contentStyle={{ 
+                          backgroundColor: 'rgba(0, 0, 0, 0.8)', 
+                          border: '1px solid rgba(255, 255, 255, 0.2)',
+                          borderRadius: '8px',
+                          color: 'white'
+                        }} 
                       />
                       <Area
                         type="monotone"
                         dataKey="volume"
                         stroke="#3B82F6"
                         fillOpacity={1}
-                        fill="url(#volumeGradient)"
+                        fill="url(#colorVolume)"
                       />
                     </AreaChart>
                   </ResponsiveContainer>
@@ -228,9 +219,9 @@ export default function AnalyticsPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.5 }}
             >
-              <Card className="glassmorphism border-0">
+              <Card className="backdrop-blur-sm bg-white/5 border-white/20">
                 <CardHeader>
-                  <CardTitle className="flex items-center space-x-2">
+                  <CardTitle className="text-white flex items-center gap-2">
                     <PieChartIcon className="h-5 w-5" />
                     <span>Token Distribution</span>
                   </CardTitle>
@@ -287,9 +278,9 @@ export default function AnalyticsPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.6 }}
             >
-              <Card className="glassmorphism border-0">
+              <Card className="backdrop-blur-sm bg-white/5 border-white/20">
                 <CardHeader>
-                  <CardTitle className="flex items-center space-x-2">
+                  <CardTitle className="text-white flex items-center gap-2">
                     <TrendingUp className="h-5 w-5" />
                     <span>Price Trends (24h)</span>
                   </CardTitle>
@@ -336,15 +327,15 @@ export default function AnalyticsPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.7 }}
             >
-              <Card className="glassmorphism border-0">
+              <Card className="backdrop-blur-sm bg-white/5 border-white/20">
                 <CardHeader>
-                  <CardTitle className="flex items-center space-x-2">
+                  <CardTitle className="text-white flex items-center gap-2">
                     <Clock className="h-5 w-5" />
                     <span>Top Tokens (24h Volume)</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {topTokens.map((token, index) => (
+                  {topTokens.map((token) => (
                     <div key={token.symbol} className="space-y-2">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-3">

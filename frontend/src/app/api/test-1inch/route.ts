@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
       if (testType === 'price' || testType === 'all') {
         console.log('🔍 Testing Price API...');
         const priceToken = tokenAddress || TOKENS.ETH;
-        const ethPrice = await oneInchAPI.getTokenPrice(ETHEREUM_CHAIN_ID, priceToken);
+        const ethPrice = await oneInchAPI.getTokenPrices(ETHEREUM_CHAIN_ID, [priceToken]);
         results.price = {
           [priceToken]: ethPrice,
           description: `Current ${priceToken === TOKENS.ETH ? 'ETH' : 'Token'} price in USD`

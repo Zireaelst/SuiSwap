@@ -116,7 +116,7 @@ const tutorials = [
 
 export default function DocsPage() {
   return (
-    <main className="relative min-h-screen">
+    <main className="relative min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-950">
       <BackgroundBeams />
       <NavigationHeader />
 
@@ -129,11 +129,11 @@ export default function DocsPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-            <h1 className="text-4xl md:text-6xl font-bold mb-6">
-              KATA <span className="gradient-text">Documentation</span>
+            <h1 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+              KATA Documentation
             </h1>
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              Everything you need to know about using KATA Protocol for cross-chain DeFi trading
+            <p className="text-xl text-gray-400 max-w-3xl mx-auto">
+              Master cross-chain DeFi trading with 1inch API integration and advanced strategies
             </p>
           </motion.div>
 
@@ -144,10 +144,10 @@ export default function DocsPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
           >
-            <Card className="glassmorphism border-0 text-center">
+            <Card className="backdrop-blur-sm bg-white/5 border-white/20 text-center">
               <CardContent className="p-8">
                 <Zap className="h-12 w-12 mx-auto mb-4 text-yellow-500" />
-                <h2 className="text-2xl font-bold mb-4">Quick Start Guide</h2>
+                <h2 className="text-2xl font-bold mb-4 text-white">Quick Start Guide</h2>
                 <p className="text-muted-foreground mb-6">
                   Get started with KATA Protocol in just a few minutes
                 </p>
@@ -174,9 +174,9 @@ export default function DocsPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: index * 0.1 + 0.3 }}
               >
-                <Card className="glassmorphism border-0 hover-lift h-full">
+                <Card className="backdrop-blur-sm bg-white/5 border-white/20 hover:bg-white/10 transition-all duration-300 h-full">
                   <CardHeader>
-                    <CardTitle className="flex items-center space-x-3">
+                    <CardTitle className="flex items-center gap-3 text-white">
                       <section.icon className={`h-6 w-6 ${section.color}`} />
                       <span>{section.title}</span>
                     </CardTitle>
@@ -184,10 +184,10 @@ export default function DocsPage() {
                   </CardHeader>
                   <CardContent>
                     <ul className="space-y-3">
-                      {section.items.map((item, itemIndex) => (
+                      {section.items.map((item) => (
                         <motion.li
                           key={item}
-                          className="flex items-center space-x-3 p-2 rounded-lg hover:bg-accent/50 transition-colors cursor-pointer"
+                          className="flex items-center gap-3 p-2 rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
                           whileHover={{ x: 5 }}
                         >
                           <ArrowRight className="h-4 w-4 text-muted-foreground" />
@@ -219,10 +219,10 @@ export default function DocsPage() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6, delay: index * 0.1 + 0.8 }}
                 >
-                  <Card className="glassmorphism border-0 hover-lift cursor-pointer">
+                  <Card className="backdrop-blur-sm bg-white/5 border-white/20 hover:bg-white/10 transition-all duration-300 cursor-pointer">
                     <CardContent className="p-6">
                       <tutorial.icon className="h-8 w-8 text-blue-500 mb-4" />
-                      <h3 className="font-semibold mb-2">{tutorial.title}</h3>
+                      <h3 className="font-semibold mb-2 text-white">{tutorial.title}</h3>
                       <div className="flex items-center justify-between text-sm text-muted-foreground">
                         <span>{tutorial.duration}</span>
                         <Badge variant="secondary">{tutorial.difficulty}</Badge>
@@ -241,16 +241,16 @@ export default function DocsPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.9 }}
           >
-            {quickLinks.map((link, index) => (
+            {quickLinks.map((link) => (
               <motion.div
                 key={link.title}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
               >
-                <Card className="glassmorphism border-0 hover-lift cursor-pointer">
+                <Card className="backdrop-blur-sm bg-white/5 border-white/20 hover:bg-white/10 transition-all duration-300 cursor-pointer">
                   <CardContent className="p-6 text-center">
                     <link.icon className="h-8 w-8 mx-auto mb-4 text-purple-500" />
-                    <h3 className="font-semibold mb-2 flex items-center justify-center space-x-2">
+                    <h3 className="font-semibold mb-2 flex items-center justify-center gap-2 text-white">
                       <span>{link.title}</span>
                       {link.external && <ExternalLink className="h-4 w-4" />}
                     </h3>
