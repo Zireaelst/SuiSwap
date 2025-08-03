@@ -1,10 +1,11 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { useOneInchAPI } from "@/hooks/useOneInchAPI";
 import { 
   ArrowUpDown, 
   Settings, 
@@ -21,13 +22,38 @@ interface Token {
   name: string;
   logo: string;
   balance?: string;
+  address: string;
 }
 
 const tokens: Token[] = [
-  { symbol: "ETH", name: "Ethereum", logo: "🔷", balance: "2.5" },
-  { symbol: "USDC", name: "USD Coin", logo: "💵", balance: "1,250.00" },
-  { symbol: "SUI", name: "Sui", logo: "🌊", balance: "500.0" },
-  { symbol: "WBTC", name: "Wrapped Bitcoin", logo: "₿", balance: "0.05" },
+  { 
+    symbol: "ETH", 
+    name: "Ethereum", 
+    logo: "🔷", 
+    balance: "2.5",
+    address: "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE"
+  },
+  { 
+    symbol: "USDC", 
+    name: "USD Coin", 
+    logo: "💵", 
+    balance: "1,250.00",
+    address: "0xA0b86a33E6441b8C0b8C0b8C0b8C0b8C0b8C0b8C"
+  },
+  { 
+    symbol: "SUI", 
+    name: "Sui", 
+    logo: "🌊", 
+    balance: "500.0",
+    address: "0x84cA8bc7997272c7CfB4D0Cd3D55cd942B3c9419"
+  },
+  { 
+    symbol: "WBTC", 
+    name: "Wrapped Bitcoin", 
+    logo: "₿", 
+    balance: "0.05",
+    address: "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599"
+  },
 ];
 
 export const ModernSwapInterface = () => {
@@ -36,6 +62,36 @@ export const ModernSwapInterface = () => {
   const [fromAmount, setFromAmount] = useState("");
   const [toAmount, setToAmount] = useState("");
   const [activeTab, setActiveTab] = useState("swap");
+  const [exchangeRate, setExchangeRate] = useState("1 ETH = 2,450 USDC");
+  const [networkFee, setNetworkFee] = useState("~$12.50");
+
+  const { getTokenPrice, getSwapQuote, loading, error } = useOneInchAPI();
+
+  // Gerçek zamanlı fiyat güncellemeleri
+  useEffect(() => {
+    const updateExchangeRate = async () => {
+      if (fromToken.address && toToken.address && fromAmount) {
+        try {
+          const fromPrice = await getTokenPrice(fromToken.address);
+          const toPrice = await getTokenPrice(toToken.address);
+          
+          if (fromPrice && toPrice) {
+            const rate = fromPrice / toPrice;
+            setExchangeRate(`1 ${fromToken.symbol} = ${rate.toFixed(2)} ${toToken.symbol}`);
+            
+            // Otomatik hesaplama
+            const calculatedAmount = (parseFloat(fromAmount) * rate).toFixed(6);
+            setToAmount(calculatedAmount);
+          }
+        } catch (error) {
+          console.error('Price update error:', error);
+        }
+      }
+    };
+
+    const timer = setTimeout(updateExchangeRate, 500); // Debounce
+    return () => clearTimeout(timer);
+  }, [fromToken, toToken, fromAmount, getTokenPrice]);
 
   const handleSwapTokens = () => {
     const temp = fromToken;
@@ -136,9 +192,14 @@ export const ModernSwapInterface = () => {
 
       {/* Trading Info */}
       <div className="space-y-3 p-4 glassmorphism rounded-xl">
+        {error && (
+          <div className="text-red-500 text-sm">
+            API Error: {error}
+          </div>
+        )}
         <div className="flex justify-between text-sm">
           <span className="text-muted-foreground">Rate</span>
-          <span>1 ETH = 2,450 USDC</span>
+          <span className={loading ? "animate-pulse" : ""}>{exchangeRate}</span>
         </div>
         <div className="flex justify-between text-sm">
           <span className="text-muted-foreground flex items-center space-x-1">
@@ -149,8 +210,13 @@ export const ModernSwapInterface = () => {
         </div>
         <div className="flex justify-between text-sm">
           <span className="text-muted-foreground">Network Fee</span>
-          <span>~$12.50</span>
+          <span>{networkFee}</span>
         </div>
+        {loading && (
+          <div className="text-center text-sm text-muted-foreground">
+            Updating prices...
+          </div>
+        )}
       </div>
     </div>
   );
