@@ -8,15 +8,20 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BackgroundBeams } from '@/components/ui/background-beams';
 import { Spotlight } from '@/components/ui/spotlight';
 import { 
-  useOneInchPrices,
-  useOneInchBalances,
-  useOneInchPortfolio,
-  useOneInchHistory,
-  isAPIConfigured,
-  PortfolioToken,
-  HistoryEvent
-} from '@/hooks/useOneInch';
+  useTokenPrices,
+  useWalletBalances,
+  usePortfolio,
+  useWalletHistory
+} from '@/hooks/useOneInchData';
+import { PortfolioData, TokenBalance, WalletTransaction } from '@/utils/1inch-api';
 import { Wallet, History, Search, BarChart3, RefreshCw, AlertCircle, TrendingUp, DollarSign, Activity } from 'lucide-react';
+
+interface PortfolioToken {
+    token_address: string;
+    balance: string;
+    value_usd: number;
+    price_usd: number;
+}
 
 interface OneInchDashboardProps {
     walletAddress?: string;
@@ -51,21 +56,21 @@ export const OneInchDashboard: React.FC<OneInchDashboardProps> = ({
     const [activeAddress, setActiveAddress] = useState(walletAddress);
     const [inputAddress, setInputAddress] = useState(walletAddress);
 
-    // 1inch API Hooks
-    const { prices, loading: pricesLoading, refetch: refetchPrices } = useOneInchPrices(chainId, [
+    // 1inch API Hooks via Backend
+    const { prices, loading: pricesLoading, refetch: refetchPrices } = useTokenPrices(chainId, [
         '0xa0b86a33e6c2aaa284b7b6bb636c8b69c5be4ba6', // USDC
         '0x6b175474e89094c44da98b954eedeac495271d0f', // DAI
         '0xa0b86a33e6c2aaa284b7b6bb636c8b69c5be4ba6'  // WETH
     ]);
-    const { balances, loading: balancesLoading, refetch: refetchBalances } = useOneInchBalances(chainId, activeAddress);
-    const { portfolio, loading: portfolioLoading, refetch: refetchPortfolio } = useOneInchPortfolio(activeAddress, chainId);
-    const { history, loading: historyLoading, refetch: refetchHistory } = useOneInchHistory(activeAddress, chainId);
+    const { balances, loading: balancesLoading, refetch: refetchBalances } = useWalletBalances(chainId, activeAddress);
+    const { portfolioData: portfolio, loading: portfolioLoading, refetch: refetchPortfolio } = usePortfolio(activeAddress, chainId);
+    const { history, loading: historyLoading, refetch: refetchHistory } = useWalletHistory(activeAddress, chainId, 100);
 
     const handleAddressChange = () => {
         setActiveAddress(inputAddress);
     };
 
-    const isConfigured = isAPIConfigured();
+    const isConfigured = true; // Backend API is always configured
 
     if (!isConfigured) {
         return (
@@ -203,11 +208,11 @@ export const OneInchDashboard: React.FC<OneInchDashboardProps> = ({
                                                 {portfolioLoading ? (
                                                     <div className="animate-pulse bg-gray-600 h-6 w-24 rounded"></div>
                                                 ) : (
-                                                    `$${portfolio?.total_value_usd?.toLocaleString() || '0'}`
+                                                    `$${portfolio?.current_value?.[activeAddress]?.total_value_usd?.toLocaleString() || '0'}`
                                                 )}
                                             </div>
                                             <p className="text-xs text-gray-400">
-                                                {portfolio?.tokens?.length || 0} tokens
+                                                {portfolio?.current_value?.[activeAddress]?.tokens?.length || 0} tokens
                                             </p>
                                         </CardContent>
                                     </Card>
@@ -223,7 +228,7 @@ export const OneInchDashboard: React.FC<OneInchDashboardProps> = ({
                                                 {portfolioLoading ? (
                                                     <div className="animate-pulse bg-gray-600 h-6 w-20 rounded"></div>
                                                 ) : (
-                                                    `${portfolio?.roi?.toFixed(2) || '0'}%`
+                                                    `${portfolio?.current_value?.[activeAddress]?.roi?.toFixed(2) || '0'}%`
                                                 )}
                                             </div>
                                             <p className="text-xs text-gray-400">
@@ -255,14 +260,14 @@ export const OneInchDashboard: React.FC<OneInchDashboardProps> = ({
                                 </div>
 
                                 {/* Portfolio Details */}
-                                {portfolio?.tokens && (
+                                {portfolio?.current_value?.[activeAddress]?.tokens && (
                                     <Card className="bg-black/50 border-white/10 backdrop-blur-md">
                                         <CardHeader>
                                             <CardTitle className="text-white">Token Holdings</CardTitle>
                                         </CardHeader>
                                         <CardContent>
                                             <div className="space-y-3">
-                                                {portfolio.tokens.map((token: PortfolioToken, index: number) => (
+                                                {portfolio.current_value[activeAddress].tokens.map((token: PortfolioToken, index: number) => (
                                                     <motion.div
                                                         key={index}
                                                         initial={{ opacity: 0, x: -20 }}
@@ -328,7 +333,7 @@ export const OneInchDashboard: React.FC<OneInchDashboardProps> = ({
                                             </div>
                                         ) : balances && Object.keys(balances).length > 0 ? (
                                             <div className="space-y-3">
-                                                {Object.entries(balances).map(([address, balance]: [string, string]) => (
+                                                {Object.entries(balances).map(([address, balance]) => (
                                                     <motion.div
                                                         key={address}
                                                         initial={{ opacity: 0, y: 10 }}
@@ -394,7 +399,7 @@ export const OneInchDashboard: React.FC<OneInchDashboardProps> = ({
                                             </div>
                                         ) : prices && Object.keys(prices).length > 0 ? (
                                             <div className="space-y-3">
-                                                {Object.entries(prices).map(([address, price]: [string, string | number]) => (
+                                                {Object.entries(prices).map(([address, price]) => (
                                                     <motion.div
                                                         key={address}
                                                         initial={{ opacity: 0, x: -20 }}
@@ -460,7 +465,7 @@ export const OneInchDashboard: React.FC<OneInchDashboardProps> = ({
                                             </div>
                                         ) : history && history.length > 0 ? (
                                             <div className="space-y-3">
-                                                {history.map((tx: HistoryEvent, index: number) => (
+                                                {history.map((tx: WalletTransaction, index: number) => (
                                                     <motion.div
                                                         key={index}
                                                         initial={{ opacity: 0, y: 10 }}
@@ -473,18 +478,18 @@ export const OneInchDashboard: React.FC<OneInchDashboardProps> = ({
                                                         </div>
                                                         <div className="flex-1">
                                                             <p className="text-white font-medium">
-                                                                {tx.type || 'Transaction'}
+                                                                {tx.details?.type || 'Transaction'}
                                                             </p>
                                                             <p className="text-gray-400 text-sm">
-                                                                {tx.txHash ? `${tx.txHash.slice(0, 10)}...${tx.txHash.slice(-8)}` : 'Unknown hash'}
+                                                                {tx.details?.txHash ? `${tx.details.txHash.slice(0, 10)}...${tx.details.txHash.slice(-8)}` : 'Unknown hash'}
                                                             </p>
                                                         </div>
                                                         <div className="text-right">
                                                             <p className="text-white font-medium">
-                                                                {tx.value || 'N/A'}
+                                                                {tx.details?.value || 'N/A'}
                                                             </p>
                                                             <p className="text-gray-400 text-sm">
-                                                                {tx.timestamp ? new Date(tx.timestamp * 1000).toLocaleDateString() : 'Unknown date'}
+                                                                {tx.details?.timestamp ? new Date(parseInt(tx.details.timestamp) * 1000).toLocaleDateString() : 'Unknown date'}
                                                             </p>
                                                         </div>
                                                     </motion.div>
