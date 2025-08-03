@@ -8,155 +8,247 @@ datasource db {
 }
 
 model User {
-  id            String   @id @default(cuid())
-  ethAddress    String   @unique
-  suiAddress    String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  swaps         CrossChainSwap[]
-  limitOrders   LimitOrder[]
-  twapOrders    TWAPOrder[]
+  id              String @id @default(cuid())
+  ethereumAddress String @unique
+  suiAddress      String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  limitOrders     LimitOrder[]
+  twapOrders      TWAPOrder[]
+  swapHistory     SwapTransaction[]
+  liquidityPositions ConcentratedLiquidityPosition[]
+  arbitrageOrders ArbitrageOrder[]
 
   @@map("users")
 }
 
-model CrossChainSwap {
-  id              String   @id @default(cuid())
-  userId          String
-  user            User     @relation(fields: [userId], references: [id])
-
-  fromChain       String
-  toChain         String
-  fromToken       String
-  toToken         String
-  fromAmount      String
-  toAmount        String
-
-  status          SwapStatus @default(PENDING)
-
-  ethTxHash       String?
-  suiTxHash       String?
-  ethOrderId      String?
-  suiOrderId      String?
-
-  hashlock        String
-  preimage        String?
-  timelock        DateTime
-
-  quote           Json?
-  priceImpact     Float?
-  networkFee      String?
-
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-  @@map("cross_chain_swaps")
-}
-
 model LimitOrder {
-  id              String   @id @default(cuid())
+  id              String @id @default(cuid())
   userId          String
-  user            User     @relation(fields: [userId], references: [id])
-
-  chainId         Int
+  user            User @relation(fields: [userId], references: [id])
+  
+  // Order details
   tokenIn         String
   tokenOut        String
   amountIn        String
-  amountOut       String
-  price           String
-
-  orderType       OrderType @default(LIMIT)
-  status          OrderStatus @default(PENDING)
-
-  orderHash       String   @unique
-  signature       String
-
-  filledAmount    String   @default("0")
-  avgFillPrice    String?
-
+  targetPrice     String
+  minAmountOut    String
+  
+  // Chain info
+  sourceChain     String
+  targetChain     String?
+  
+  // 1inch integration
+  oneInchOrderId  String?
+  oneInchOrderHash String?
+  
+  // Status and timing
+  status          String @default("ACTIVE") // OrderStatus enum as string
+  expirationDate  DateTime
+  isActive        Boolean @default(true)
+  isFilled        Boolean @default(false)
+  filledAmount    String @default("0")
+  
+  // Execution details
+  txHash          String?
+  gasUsed         String?
+  executedPrice   String?
+  slippage        Float?
+  
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
-  expiresAt       DateTime?
 
   @@map("limit_orders")
 }
 
 model TWAPOrder {
-  id                String   @id @default(cuid())
-  userId            String
-  user              User     @relation(fields: [userId], references: [id])
-
-  chainId           Int
-  tokenIn           String
-  tokenOut          String
-  totalAmount       String
-  executedAmount    String   @default("0")
-
-  intervals         Int
-  intervalDuration  Int      // in seconds
-
-  status            OrderStatus @default(PENDING)
-
-  startTime         DateTime
-  lastExecutionTime DateTime?
-
-  suiOrderHash      String?
-
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-
-  executions        TWAPExecution[]
+  id              String @id @default(cuid())
+  userId          String
+  user            User @relation(fields: [userId], references: [id])
+  
+  // Order details
+  tokenIn         String
+  tokenOut        String
+  totalAmount     String
+  targetPrice     String?
+  
+  // TWAP configuration
+  intervalMinutes Int
+  totalIntervals  Int
+  completedIntervals Int @default(0)
+  amountPerInterval String
+  
+  // Cross-chain support
+  sourceChain     String
+  targetChain     String?
+  
+  // Status
+  status          String @default("ACTIVE") // TWAPStatus enum as string
+  isActive        Boolean @default(true)
+  
+  // Progress tracking
+  totalExecuted   String @default("0")
+  averagePrice    String?
+  priceDeviation  Float?
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  nextExecution   DateTime?
+  
+  executions      TWAPExecution[]
 
   @@map("twap_orders")
 }
 
 model TWAPExecution {
-  id              String   @id @default(cuid())
-  twapOrderId     String
-  twapOrder       TWAPOrder @relation(fields: [twapOrderId], references: [id])
-
-  amount          String
-  price           String
-  txHash          String
-
-  executedAt      DateTime @default(now())
+  id          String @id @default(cuid())
+  twapOrderId String
+  twapOrder   TWAPOrder @relation(fields: [twapOrderId], references: [id])
+  
+  // Execution details
+  amount      String
+  price       String
+  slippage    Float?
+  gasUsed     String?
+  
+  // Transaction info
+  txHash      String?
+  blockNumber Int?
+  status      String @default("PENDING") // ExecutionStatus enum as string
+  
+  // Timing
+  scheduledAt DateTime
+  executedAt  DateTime?
+  
+  createdAt   DateTime @default(now())
 
   @@map("twap_executions")
 }
 
-model Portfolio {
-  id              String   @id @default(cuid())
-  userAddress     String   @unique
+model SwapTransaction {
+  id              String @id @default(cuid())
+  userId          String
+  user            User @relation(fields: [userId], references: [id])
+  
+  // Cross-chain details
+  fromChain       String
+  toChain         String
+  tokenIn         String
+  tokenOut        String
+  amountIn        String
+  amountOut       String?
+  
+  // HTLC details for cross-chain
+  hashlock        String?
+  preimage        String?
+  timelock        DateTime?
+  
+  // Transaction hashes
+  txHashFrom      String?
+  txHashTo        String?
+  
+  // Status and metrics
+  status          String @default("PENDING") // SwapStatus enum as string
+  priceImpact     Float?
+  slippage        Float?
+  gasUsed         String?
+  networkFee      String?
+  
+  // Quote information (stored as string)
+  quote           String? // JSON data stored as string
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
-  totalValueUSD   Float    @default(0)
-  totalPnL        Float    @default(0)
-
-  positions       Json     // Store token positions
-
-  lastUpdated     DateTime @default(now())
-
-  @@map("portfolios")
+  @@map("swap_transactions")
 }
 
-enum SwapStatus {
-  PENDING
-  PROCESSING
-  COMPLETED
-  FAILED
-  REFUNDED
+model ConcentratedLiquidityPosition {
+  id              String @id @default(cuid())
+  userId          String
+  user            User @relation(fields: [userId], references: [id])
+  
+  // Position details
+  tokenA          String
+  tokenB          String
+  liquidity       String
+  
+  // Price range
+  priceLower      String
+  priceUpper      String
+  currentPrice    String?
+  
+  // Chain and pool info
+  chain           String
+  poolAddress     String
+  positionId      String?
+  
+  // Status
+  isActive        Boolean @default(true)
+  
+  // Yield tracking
+  feesCollected   String @default("0")
+  totalYield      String @default("0")
+  apy             Float?
+  
+  // Rebalancing
+  lastRebalance   DateTime?
+  rebalanceCount  Int @default(0)
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("liquidity_positions")
 }
 
-enum OrderStatus {
-  PENDING
-  PARTIALLY_FILLED
-  FILLED
-  CANCELLED
-  EXPIRED
+model ArbitrageOrder {
+  id              String @id @default(cuid())
+  userId          String
+  user            User @relation(fields: [userId], references: [id])
+  
+  // Arbitrage details
+  tokenPair       String
+  sourceChain     String
+  targetChain     String
+  sourceExchange  String
+  targetExchange  String
+  
+  // Price differential
+  sourcePriceUSD  String
+  targetPriceUSD  String
+  priceSpread     Float
+  minProfitUSD    String
+  
+  // Execution
+  amount          String
+  estimatedProfit String
+  actualProfit    String?
+  
+  // Status
+  status          String @default("DETECTED") // ArbitrageStatus enum as string
+  
+  // Transaction details
+  sourceTxHash    String?
+  targetTxHash    String?
+  gasUsed         String?
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  executedAt      DateTime?
+
+  @@map("arbitrage_orders")
 }
 
-enum OrderType {
-  LIMIT
-  TWAP
-  CONCENTRATED_LIQUIDITY
+model PriceHistory {
+  id          String @id @default(cuid())
+  tokenPair   String
+  chain       String
+  exchange    String
+  price       String
+  volume24h   String?
+  timestamp   DateTime @default(now())
+  
+  @@map("price_history")
+  @@index([tokenPair, chain, timestamp])
 }
