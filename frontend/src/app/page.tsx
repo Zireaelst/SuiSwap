@@ -37,7 +37,7 @@ const LiveMarketData = () => {
     '0x6B175474E89094C44Da98b954EedeAC495271d0F', // DAI
   ];
 
-  const apiKey = process.env.NEXT_PUBLIC_ONEINCH_API_KEY || '';
+  const apiKey = process.env.NEXT_PUBLIC_1INCH_API_KEY || '';
   const { prices, loading } = useTokenPrices(1, popularTokens, apiKey);
 
   const tokenNames = {
