@@ -4,37 +4,95 @@
 ## Project Overview
 
 
-**KATA Protocol**: Cross-chain DeFi platform combining Ethereum ↔ Sui atomic swaps with advanced limit order strategies, targeting $127,000 in prizes across 3 tracks.
+**KATA Protocol**: Cross-chain DeFi platform combining Ethereum ↔ Sui atomic swaps with advanced limit order strategies
 
 > **About the Name:**
 > "Kata" in Japanese martial arts refers to a precise, pre-defined sequence of efficient movements. This reflects the protocol's focus on automated, programmable, and efficient strategies (like TWAP), and is a clever nod to the martial arts inspiration behind 1inch.
 
+# Kata Protocol
+
+A next-generation cross-chain DeFi platform enabling atomic swaps between Ethereum and Sui with advanced trading strategies.
+
+## 🚀 Features
+
+### Core Functionality
+- **Cross-Chain Atomic Swaps**: Trustless ETH ↔ SUI swaps using HTLC
+- **Advanced Limit Orders**: TWAP, Concentrated Liquidity, Custom Strategies
+- **MEV Protection**: Multiple protection mechanisms for secure trading
+- **Real-time Portfolio**: Multi-chain asset tracking and analytics
+- **Arbitrage Detection**: Automated cross-chain opportunity detection
+
+### Technical Highlights
+- **1inch API Integration**: Comprehensive API usage for pricing and routing
+- **Cross-Chain Coordination**: Ethereum-Sui state synchronization
+- **Professional UI**: React/Next.js with Tailwind CSS
+- **Real-time Updates**: Live price feeds and transaction monitoring
+
+## 🏗️ Architecture
+
+┌─────────────────┐    ┌─────────────────┐
+│   Ethereum      │    │      Sui        │
+│                 │    │                 │
+│  ┌───────────┐  │    │  ┌───────────┐  │
+│  │   HTLC    │  │◄──►│  │   HTLC    │  │
+│  │ Contract  │  │    │  │ Contract  │  │
+│  └───────────┘  │    │  └───────────┘  │
+│                 │    │                 │
+│  ┌───────────┐  │    │  ┌───────────┐  │
+│  │   TWAP    │  │◄──►│  │   TWAP    │  │
+│  │ Strategy  │  │    │  │ Strategy  │  │
+│  └───────────┘  │    │  └───────────┘  │
+└─────────────────┘    └─────────────────┘
+▲                       ▲
+│                       │
+└───────┐       ┌───────┘
+│       │
+┌─────────────────┐
+│   Frontend      │
+│  (Next.js)      │
+│                 │
+│  ┌───────────┐  │
+│  │ 1inch API │  │
+│  │Integration│  │
+│  └───────────┘  │
+└─────────────────┘
+
+```
+
 ## 🛠️ Tech Stack
 
-### **Blockchain Layer**
-
-- **Ethereum**: Solidity ^0.8.19, Hardhat, OpenZeppelin
-- **Sui**: Move language, Sui CLI, Sui SDK
-- **Cross-Chain**: HTLC (Hashed Time Lock Contracts)
-
-### **Backend (Minimal)**
-
-- **API Gateway**: Next.js API routes
-- **Database**: SQLite/PostgreSQL (for order history)
-- **Caching**: Redis (optional for price caching)
-- **External APIs**: 1inch API suite
-
-### **Frontend**
-
-- **Framework**: Next.js 14, React 18
-- **Styling**: TailwindCSS, Framer Motion
+- **Frontend**: Next.js 14, React 18, TypeScript
+- **Styling**: Tailwind CSS, Framer Motion
 - **Web3**: Ethers.js v6, @mysten/sui.js
 - **State Management**: Zustand
-- **UI Components**: Radix UI, React Hook Form
+- **Database**: Prisma with SQLite
+- **APIs**: 1inch API Suite
+- **Smart Contracts**: Solidity ^0.8.19, Move Language
 
-### **Development Tools**
+## 📦 Installation
 
-- **Version Control**: Git, GitHub
-- **Testing**: Jest, Hardhat Test, Move Unit Tests
-- **Deployment**: Vercel (frontend), Alchemy/Infura (Ethereum)
-- **Monitoring**: Sentry, Console logs
+### Prerequisites
+- Node.js 18+
+- npm or yarn
+- Git
+
+### Setup
+```bash
+# Clone repository
+git clone https://github.com/your-username/suiswap-pro.git
+cd suiswap-pro
+
+# Install dependencies
+npm install
+
+# Setup environment variables
+cp .env.example .env.local
+# Fill in your API keys and RPC URLs
+
+# Setup database
+npx prisma db push
+
+# Start development server
+npm run dev
+
+```

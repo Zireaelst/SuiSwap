@@ -1,6 +1,10 @@
 // Advanced Trading Components
 export { ArbitrageDashboard } from './ArbitrageDashboard';
 export { Layout } from './Layout';
+export { EnhancedSwapInterface } from './EnhancedSwapInterface';
+export { ModernSwapInterface } from './ModernSwapInterface';
+export { OneInchDashboard } from './OneInchDashboard';
+export { NavigationHeader } from './NavigationHeader';
 
 // Loading States
 export {
@@ -15,7 +19,3 @@ export {
   EmptyPortfolioState,
   LoadingSpinner
 } from './LoadingStates';
-
-// Existing Components (re-export for convenience)
-export { ModernSwapInterface } from './ModernSwapInterface-Fixed';
-export { NavigationHeader } from './NavigationHeader';

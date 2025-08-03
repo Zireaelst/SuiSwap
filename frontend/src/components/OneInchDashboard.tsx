@@ -4,384 +4,507 @@ import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useWalletBalances, useWalletHistory, usePortfolio, useTokenPrices, useETHBalance } from '@/hooks/useOneInchData';
-import { Wallet, History, TrendingUp, Search, BarChart3, RefreshCw } from 'lucide-react';
+import { BackgroundBeams } from '@/components/ui/background-beams';
+import { Spotlight } from '@/components/ui/spotlight';
+import { 
+  useOneInchPrices,
+  useOneInchBalances,
+  useOneInchPortfolio,
+  useOneInchHistory,
+  isAPIConfigured,
+  PortfolioToken,
+  HistoryEvent
+} from '@/hooks/useOneInch';
+import { Wallet, History, Search, BarChart3, RefreshCw, AlertCircle, TrendingUp, DollarSign, Activity } from 'lucide-react';
 
 interface OneInchDashboardProps {
-    apiKey: string;
+    walletAddress?: string;
+    chainId?: number;
 }
 
-export const OneInchDashboard: React.FC<OneInchDashboardProps> = ({ apiKey }) => {
-    const [walletAddress, setWalletAddress] = useState('0xd8da6bf26964af9d7eed9e03e53415d37aa96045');
-    const [chainId] = useState(1); // Ethereum mainnet
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1
+    }
+  }
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.5
+    }
+  }
+};
+
+export const OneInchDashboard: React.FC<OneInchDashboardProps> = ({ 
+    walletAddress = '0xd8da6bf26964af9d7eed9e03e53415d37aa96045',
+    chainId = 1 
+}) => {
     const [activeAddress, setActiveAddress] = useState(walletAddress);
+    const [inputAddress, setInputAddress] = useState(walletAddress);
 
-    // Hooks for different API calls
-    const { balances, loading: balancesLoading, error: balancesError, refetch: refetchBalances } = useWalletBalances(chainId, activeAddress, apiKey);
-    const { history, loading: historyLoading, error: historyError, refetch: refetchHistory } = useWalletHistory(activeAddress, chainId, 10, apiKey);
-    const { portfolioData, loading: portfolioLoading, error: portfolioError, refetch: refetchPortfolio } = usePortfolio(activeAddress, chainId, apiKey);
-    const { balance: ethBalance, loading: ethLoading, error: ethError, refetch: refetchETH } = useETHBalance(activeAddress, chainId, apiKey);
+    // 1inch API Hooks
+    const { prices, loading: pricesLoading, refetch: refetchPrices } = useOneInchPrices(chainId, [
+        '0xa0b86a33e6c2aaa284b7b6bb636c8b69c5be4ba6', // USDC
+        '0x6b175474e89094c44da98b954eedeac495271d0f', // DAI
+        '0xa0b86a33e6c2aaa284b7b6bb636c8b69c5be4ba6'  // WETH
+    ]);
+    const { balances, loading: balancesLoading, refetch: refetchBalances } = useOneInchBalances(chainId, activeAddress);
+    const { portfolio, loading: portfolioLoading, refetch: refetchPortfolio } = useOneInchPortfolio(activeAddress, chainId);
+    const { history, loading: historyLoading, refetch: refetchHistory } = useOneInchHistory(activeAddress, chainId);
 
-    // Popular token addresses for price display
-    const popularTokens = [
-        '0x111111111117dc0aa78b770fa6a738034120c302', // 1INCH
-        '0xA0b86a33E6441b9c0Ec4AD851c1e4Ec3C02Db0b2', // USDC
-        '0xdAC17F958D2ee523a2206206994597C13D831ec7', // USDT
-    ];
-
-    const { prices, loading: pricesLoading, refetch: refetchPrices } = useTokenPrices(chainId, popularTokens, apiKey);
-
-    const handleAddressSubmit = () => {
-        setActiveAddress(walletAddress);
+    const handleAddressChange = () => {
+        setActiveAddress(inputAddress);
     };
 
-    const formatBalance = (balance: string, decimals: number = 18) => {
-        const value = parseInt(balance) / Math.pow(10, decimals);
-        return value.toFixed(4);
-    };
+    const isConfigured = isAPIConfigured();
 
-    const formatETHBalance = (balance: string) => {
-        const value = parseInt(balance, 16) / Math.pow(10, 18);
-        return value.toFixed(4);
-    };
+    if (!isConfigured) {
+        return (
+            <div className="min-h-screen bg-black relative overflow-hidden">
+                <Spotlight className="-top-40 left-0 md:left-60 md:-top-20" fill="white" />
+                <div className="h-screen w-full bg-black bg-grid-white/[0.02] relative flex items-center justify-center">
+                    <div className="absolute pointer-events-none inset-0 flex items-center justify-center bg-black [mask-image:radial-gradient(ellipse_at_center,transparent_20%,black)]"></div>
+                    
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5 }}
+                        className="relative z-20"
+                    >
+                        <Card className="w-96 bg-black/50 border-white/10 backdrop-blur-md">
+                            <CardHeader className="text-center">
+                                <AlertCircle className="mx-auto mb-4 h-12 w-12 text-red-400" />
+                                <CardTitle className="text-white">1inch API Not Configured</CardTitle>
+                            </CardHeader>
+                            <CardContent className="text-center">
+                                <p className="text-gray-400 mb-4">
+                                    Please configure your 1inch API keys in environment variables to use this dashboard.
+                                </p>
+                                <div className="text-sm text-gray-500">
+                                    Required: NEXT_PUBLIC_1INCH_API_KEY
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </motion.div>
+                    
+                    <BackgroundBeams />
+                </div>
+            </div>
+        );
+    }
 
     return (
-        <div className="space-y-6 max-w-7xl mx-auto p-6">
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="text-center space-y-4"
-            >
-                <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                    1inch API Dashboard
-                </h1>
-                <p className="text-muted-foreground">
-                    Comprehensive wallet analytics powered by 1inch APIs
-                </p>
-            </motion.div>
+        <div className="min-h-screen bg-black relative overflow-hidden">
+            <Spotlight className="-top-40 left-0 md:left-60 md:-top-20" fill="white" />
+            <div className="h-full w-full bg-black bg-grid-white/[0.02] relative">
+                <div className="absolute pointer-events-none inset-0 flex items-center justify-center bg-black [mask-image:radial-gradient(ellipse_at_center,transparent_20%,black)]"></div>
+                
+                <motion.div
+                    initial="hidden"
+                    animate="visible"
+                    variants={containerVariants}
+                    className="relative z-20 container mx-auto p-6 space-y-6"
+                >
+                    {/* Header */}
+                    <motion.div variants={itemVariants} className="text-center mb-8">
+                        <h1 className="text-4xl font-bold bg-gradient-to-r from-white via-gray-300 to-gray-500 bg-clip-text text-transparent mb-4">
+                            1inch Protocol Dashboard
+                        </h1>
+                        <p className="text-gray-400 text-lg">
+                            Comprehensive DeFi analytics and portfolio management
+                        </p>
+                    </motion.div>
 
-            {/* Wallet Address Input */}
-            <Card>
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                        <Search className="h-5 w-5" />
-                        Wallet Address
-                    </CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div className="flex gap-2">
-                        <Input
-                            placeholder="Enter wallet address (0x...)"
-                            value={walletAddress}
-                            onChange={(e) => setWalletAddress(e.target.value)}
-                            className="flex-1"
-                        />
-                        <Button onClick={handleAddressSubmit}>
-                            Analyze Wallet
-                        </Button>
-                    </div>
-                    {activeAddress && (
-                        <div className="mt-2 text-sm text-muted-foreground">
-                            Analyzing: {activeAddress}
-                        </div>
-                    )}
-                </CardContent>
-            </Card>
-
-            <Tabs defaultValue="overview" className="space-y-4">
-                <TabsList className="grid w-full grid-cols-5">
-                    <TabsTrigger value="overview">Overview</TabsTrigger>
-                    <TabsTrigger value="balances">Balances</TabsTrigger>
-                    <TabsTrigger value="history">History</TabsTrigger>
-                    <TabsTrigger value="portfolio">Portfolio</TabsTrigger>
-                    <TabsTrigger value="prices">Prices</TabsTrigger>
-                </TabsList>
-
-                {/* Overview Tab */}
-                <TabsContent value="overview" className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                        <Card>
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium">ETH Balance</CardTitle>
-                                <Wallet className="h-4 w-4 text-muted-foreground" />
+                    {/* Address Input */}
+                    <motion.div variants={itemVariants}>
+                        <Card className="bg-black/50 border-white/10 backdrop-blur-md">
+                            <CardHeader>
+                                <CardTitle className="text-white flex items-center gap-2">
+                                    <Wallet className="h-5 w-5 text-blue-400" />
+                                    Wallet Address
+                                </CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <div className="text-2xl font-bold">
-                                    {ethLoading ? (
-                                        <div className="animate-pulse bg-gray-200 h-6 w-20 rounded"></div>
-                                    ) : ethError ? (
-                                        <span className="text-red-500 text-sm">Error</span>
-                                    ) : ethBalance ? (
-                                        `${formatETHBalance(ethBalance)} ETH`
-                                    ) : (
-                                        'N/A'
-                                    )}
+                                <div className="flex gap-3">
+                                    <Input
+                                        value={inputAddress}
+                                        onChange={(e) => setInputAddress(e.target.value)}
+                                        placeholder="Enter wallet address..."
+                                        className="bg-black/30 border-white/20 text-white placeholder-gray-500 focus:border-blue-400"
+                                    />
+                                    <Button 
+                                        onClick={handleAddressChange}
+                                        className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-6"
+                                    >
+                                        <Search className="h-4 w-4" />
+                                    </Button>
                                 </div>
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={refetchETH}
-                                    className="mt-2 h-6"
+                                <p className="text-sm text-gray-400 mt-2">
+                                    Current: {activeAddress}
+                                </p>
+                            </CardContent>
+                        </Card>
+                    </motion.div>
+
+                    {/* Main Dashboard */}
+                    <motion.div variants={itemVariants}>
+                        <Tabs defaultValue="portfolio" className="space-y-6">
+                            <TabsList className="bg-black/50 border-white/10 backdrop-blur-md p-1">
+                                <TabsTrigger 
+                                    value="portfolio" 
+                                    className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white text-gray-400"
                                 >
-                                    <RefreshCw className="h-3 w-3" />
-                                </Button>
-                            </CardContent>
-                        </Card>
+                                    <BarChart3 className="h-4 w-4 mr-2" />
+                                    Portfolio
+                                </TabsTrigger>
+                                <TabsTrigger 
+                                    value="balances"
+                                    className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white text-gray-400"
+                                >
+                                    <Wallet className="h-4 w-4 mr-2" />
+                                    Balances
+                                </TabsTrigger>
+                                <TabsTrigger 
+                                    value="prices"
+                                    className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white text-gray-400"
+                                >
+                                    <TrendingUp className="h-4 w-4 mr-2" />
+                                    Prices
+                                </TabsTrigger>
+                                <TabsTrigger 
+                                    value="history"
+                                    className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white text-gray-400"
+                                >
+                                    <History className="h-4 w-4 mr-2" />
+                                    History
+                                </TabsTrigger>
+                            </TabsList>
 
-                        <Card>
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium">Token Count</CardTitle>
-                                <TrendingUp className="h-4 w-4 text-muted-foreground" />
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-2xl font-bold">
-                                    {balancesLoading ? (
-                                        <div className="animate-pulse bg-gray-200 h-6 w-12 rounded"></div>
-                                    ) : balancesError ? (
-                                        <span className="text-red-500 text-sm">Error</span>
-                                    ) : (
-                                        Object.keys(balances).length
-                                    )}
-                                </div>
-                                <p className="text-xs text-muted-foreground">
-                                    ERC-20 tokens
-                                </p>
-                            </CardContent>
-                        </Card>
-
-                        <Card>
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium">Transactions</CardTitle>
-                                <History className="h-4 w-4 text-muted-foreground" />
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-2xl font-bold">
-                                    {historyLoading ? (
-                                        <div className="animate-pulse bg-gray-200 h-6 w-12 rounded"></div>
-                                    ) : historyError ? (
-                                        <span className="text-red-500 text-sm">Error</span>
-                                    ) : (
-                                        history.length
-                                    )}
-                                </div>
-                                <p className="text-xs text-muted-foreground">
-                                    Recent activity
-                                </p>
-                            </CardContent>
-                        </Card>
-
-                        <Card>
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium">Portfolio Value</CardTitle>
-                                <BarChart3 className="h-4 w-4 text-muted-foreground" />
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-2xl font-bold">
-                                    {portfolioLoading ? (
-                                        <div className="animate-pulse bg-gray-200 h-6 w-16 rounded"></div>
-                                    ) : portfolioError ? (
-                                        <span className="text-red-500 text-sm">Error</span>
-                                    ) : portfolioData?.current_value ? (
-                                        '$N/A'
-                                    ) : (
-                                        'N/A'
-                                    )}
-                                </div>
-                                <p className="text-xs text-muted-foreground">
-                                    Total USD value
-                                </p>
-                            </CardContent>
-                        </Card>
-                    </div>
-                </TabsContent>
-
-                {/* Balances Tab */}
-                <TabsContent value="balances" className="space-y-4">
-                    <Card>
-                        <CardHeader className="flex flex-row items-center justify-between">
-                            <CardTitle>Token Balances</CardTitle>
-                            <Button variant="outline" size="sm" onClick={refetchBalances}>
-                                <RefreshCw className="h-4 w-4 mr-2" />
-                                Refresh
-                            </Button>
-                        </CardHeader>
-                        <CardContent>
-                            {balancesLoading ? (
-                                <div className="space-y-2">
-                                    {[...Array(5)].map((_, i) => (
-                                        <div key={i} className="animate-pulse flex items-center space-x-4">
-                                            <div className="rounded-full bg-gray-200 h-10 w-10"></div>
-                                            <div className="flex-1">
-                                                <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                                                <div className="h-3 bg-gray-200 rounded w-1/2 mt-2"></div>
+                            {/* Portfolio Tab */}
+                            <TabsContent value="portfolio" className="space-y-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                    {/* Portfolio Overview */}
+                                    <Card className="bg-black/50 border-white/10 backdrop-blur-md">
+                                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                            <CardTitle className="text-sm font-medium text-gray-300">Total Value</CardTitle>
+                                            <DollarSign className="h-4 w-4 text-green-400" />
+                                        </CardHeader>
+                                        <CardContent>
+                                            <div className="text-2xl font-bold text-white">
+                                                {portfolioLoading ? (
+                                                    <div className="animate-pulse bg-gray-600 h-6 w-24 rounded"></div>
+                                                ) : (
+                                                    `$${portfolio?.total_value_usd?.toLocaleString() || '0'}`
+                                                )}
                                             </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            ) : balancesError ? (
-                                <div className="text-red-500 text-center py-4">
-                                    Error loading balances: {balancesError}
-                                </div>
-                            ) : Object.keys(balances).length === 0 ? (
-                                <div className="text-center text-muted-foreground py-4">
-                                    No token balances found
-                                </div>
-                            ) : (
-                                <div className="space-y-2">
-                                    {Object.entries(balances).map(([token, balance]) => (
-                                        <div key={token} className="flex items-center justify-between p-2 border rounded">
-                                            <div>
-                                                <div className="font-medium">{token.slice(0, 10)}...</div>
-                                                <div className="text-sm text-muted-foreground">Token Address</div>
-                                            </div>
-                                            <Badge variant="secondary">
-                                                {formatBalance(balance)}
-                                            </Badge>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                        </CardContent>
-                    </Card>
-                </TabsContent>
+                                            <p className="text-xs text-gray-400">
+                                                {portfolio?.tokens?.length || 0} tokens
+                                            </p>
+                                        </CardContent>
+                                    </Card>
 
-                {/* History Tab */}
-                <TabsContent value="history" className="space-y-4">
-                    <Card>
-                        <CardHeader className="flex flex-row items-center justify-between">
-                            <CardTitle>Transaction History</CardTitle>
-                            <Button variant="outline" size="sm" onClick={refetchHistory}>
-                                <RefreshCw className="h-4 w-4 mr-2" />
-                                Refresh
-                            </Button>
-                        </CardHeader>
-                        <CardContent>
-                            {historyLoading ? (
-                                <div className="space-y-2">
-                                    {[...Array(5)].map((_, i) => (
-                                        <div key={i} className="animate-pulse flex items-center space-x-4 p-2">
-                                            <div className="rounded bg-gray-200 h-4 w-4"></div>
-                                            <div className="flex-1">
-                                                <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                                                <div className="h-3 bg-gray-200 rounded w-1/2 mt-2"></div>
+                                    {/* PnL Card */}
+                                    <Card className="bg-black/50 border-white/10 backdrop-blur-md">
+                                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                            <CardTitle className="text-sm font-medium text-gray-300">ROI</CardTitle>
+                                            <Activity className="h-4 w-4 text-blue-400" />
+                                        </CardHeader>
+                                        <CardContent>
+                                            <div className="text-2xl font-bold text-green-400">
+                                                {portfolioLoading ? (
+                                                    <div className="animate-pulse bg-gray-600 h-6 w-20 rounded"></div>
+                                                ) : (
+                                                    `${portfolio?.roi?.toFixed(2) || '0'}%`
+                                                )}
                                             </div>
-                                        </div>
-                                    ))}
+                                            <p className="text-xs text-gray-400">
+                                                Portfolio performance
+                                            </p>
+                                        </CardContent>
+                                    </Card>
+
+                                    {/* Refresh Button */}
+                                    <Card className="bg-black/50 border-white/10 backdrop-blur-md">
+                                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                            <CardTitle className="text-sm font-medium text-gray-300">Actions</CardTitle>
+                                            <RefreshCw className="h-4 w-4 text-purple-400" />
+                                        </CardHeader>
+                                        <CardContent>
+                                            <Button
+                                                onClick={refetchPortfolio}
+                                                disabled={portfolioLoading}
+                                                className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white"
+                                            >
+                                                {portfolioLoading ? (
+                                                    <RefreshCw className="h-4 w-4 animate-spin" />
+                                                ) : (
+                                                    'Refresh Data'
+                                                )}
+                                            </Button>
+                                        </CardContent>
+                                    </Card>
                                 </div>
-                            ) : historyError ? (
-                                <div className="text-red-500 text-center py-4">
-                                    Error loading history: {historyError}
-                                </div>
-                            ) : history.length === 0 ? (
-                                <div className="text-center text-muted-foreground py-4">
-                                    No transaction history found
-                                </div>
-                            ) : (
-                                <div className="space-y-2">
-                                    {history.map((tx) => (
-                                        <div key={tx.id} className="border rounded p-3 hover:bg-gray-50">
-                                            <div className="flex items-center justify-between">
-                                                <div>
-                                                    <Badge variant="outline">{tx.details.type}</Badge>
-                                                    <div className="text-sm text-muted-foreground mt-1">
-                                                        {tx.details.txHash.slice(0, 10)}...
+
+                                {/* Portfolio Details */}
+                                {portfolio?.tokens && (
+                                    <Card className="bg-black/50 border-white/10 backdrop-blur-md">
+                                        <CardHeader>
+                                            <CardTitle className="text-white">Token Holdings</CardTitle>
+                                        </CardHeader>
+                                        <CardContent>
+                                            <div className="space-y-3">
+                                                {portfolio.tokens.map((token: PortfolioToken, index: number) => (
+                                                    <motion.div
+                                                        key={index}
+                                                        initial={{ opacity: 0, x: -20 }}
+                                                        animate={{ opacity: 1, x: 0 }}
+                                                        transition={{ delay: index * 0.1 }}
+                                                        className="flex items-center justify-between p-3 rounded-lg bg-black/30 border border-white/5"
+                                                    >
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center">
+                                                                <span className="text-white text-sm font-bold">
+                                                                    {token.token_address?.slice(2, 4).toUpperCase() || '?'}
+                                                                </span>
+                                                            </div>
+                                                            <div>
+                                                                <p className="text-white font-medium">{token.token_address.slice(0, 6)}...{token.token_address.slice(-4)}</p>
+                                                                <p className="text-gray-400 text-sm">Token</p>
+                                                            </div>
+                                                        </div>
+                                                        <div className="text-right">
+                                                            <p className="text-white font-medium">{parseFloat(token.balance).toFixed(4)}</p>
+                                                            <p className="text-gray-400 text-sm">${token.value_usd.toFixed(2)}</p>
+                                                        </div>
+                                                    </motion.div>
+                                                ))}
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                )}
+                            </TabsContent>
+
+                            {/* Balances Tab */}
+                            <TabsContent value="balances" className="space-y-4">
+                                <Card className="bg-black/50 border-white/10 backdrop-blur-md">
+                                    <CardHeader className="flex flex-row items-center justify-between">
+                                        <CardTitle className="text-white">Token Balances</CardTitle>
+                                        <Button
+                                            onClick={refetchBalances}
+                                            disabled={balancesLoading}
+                                            variant="outline"
+                                            size="sm"
+                                            className="border-white/20 text-white hover:bg-white/10"
+                                        >
+                                            {balancesLoading ? (
+                                                <RefreshCw className="h-4 w-4 animate-spin" />
+                                            ) : (
+                                                <RefreshCw className="h-4 w-4" />
+                                            )}
+                                        </Button>
+                                    </CardHeader>
+                                    <CardContent>
+                                        {balancesLoading ? (
+                                            <div className="space-y-3">
+                                                {[1, 2, 3].map((i) => (
+                                                    <div key={i} className="animate-pulse flex items-center gap-3">
+                                                        <div className="w-8 h-8 bg-gray-600 rounded-full"></div>
+                                                        <div className="flex-1">
+                                                            <div className="h-4 bg-gray-600 rounded w-20 mb-2"></div>
+                                                            <div className="h-3 bg-gray-600 rounded w-32"></div>
+                                                        </div>
+                                                        <div className="h-4 bg-gray-600 rounded w-24"></div>
                                                     </div>
-                                                </div>
-                                                <div className="text-right">
-                                                    <div className="font-medium">{tx.details.value}</div>
-                                                    <div className="text-sm text-muted-foreground">
-                                                        {new Date(tx.details.timestamp).toLocaleDateString()}
+                                                ))}
+                                            </div>
+                                        ) : balances && Object.keys(balances).length > 0 ? (
+                                            <div className="space-y-3">
+                                                {Object.entries(balances).map(([address, balance]: [string, string]) => (
+                                                    <motion.div
+                                                        key={address}
+                                                        initial={{ opacity: 0, y: 10 }}
+                                                        animate={{ opacity: 1, y: 0 }}
+                                                        className="flex items-center justify-between p-3 rounded-lg bg-black/30 border border-white/5"
+                                                    >
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="w-8 h-8 rounded-full bg-gradient-to-r from-green-500 to-blue-500 flex items-center justify-center">
+                                                                <span className="text-white text-sm font-bold">
+                                                                    {address.slice(2, 4).toUpperCase()}
+                                                                </span>
+                                                            </div>
+                                                            <div>
+                                                                <p className="text-white font-medium">Token</p>
+                                                                <p className="text-gray-400 text-sm">{address.slice(0, 6)}...{address.slice(-4)}</p>
+                                                            </div>
+                                                        </div>
+                                                        <div className="text-right">
+                                                            <p className="text-white font-medium">{balance}</p>
+                                                            <p className="text-gray-400 text-sm">{address.slice(0, 6)}...{address.slice(-4)}</p>
+                                                        </div>
+                                                    </motion.div>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <div className="text-center py-8">
+                                                <Wallet className="mx-auto h-12 w-12 text-gray-500 mb-4" />
+                                                <p className="text-gray-400">No token balances found</p>
+                                            </div>
+                                        )}
+                                    </CardContent>
+                                </Card>
+                            </TabsContent>
+
+                            {/* Prices Tab */}
+                            <TabsContent value="prices" className="space-y-4">
+                                <Card className="bg-black/50 border-white/10 backdrop-blur-md">
+                                    <CardHeader className="flex flex-row items-center justify-between">
+                                        <CardTitle className="text-white">Token Prices</CardTitle>
+                                        <Button
+                                            onClick={refetchPrices}
+                                            disabled={pricesLoading}
+                                            variant="outline"
+                                            size="sm"
+                                            className="border-white/20 text-white hover:bg-white/10"
+                                        >
+                                            {pricesLoading ? (
+                                                <RefreshCw className="h-4 w-4 animate-spin" />
+                                            ) : (
+                                                <RefreshCw className="h-4 w-4" />
+                                            )}
+                                        </Button>
+                                    </CardHeader>
+                                    <CardContent>
+                                        {pricesLoading ? (
+                                            <div className="space-y-3">
+                                                {[1, 2, 3].map((i) => (
+                                                    <div key={i} className="animate-pulse flex items-center justify-between p-3">
+                                                        <div className="h-4 bg-gray-600 rounded w-20"></div>
+                                                        <div className="h-4 bg-gray-600 rounded w-24"></div>
                                                     </div>
-                                                </div>
+                                                ))}
                                             </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                        </CardContent>
-                    </Card>
-                </TabsContent>
-
-                {/* Portfolio Tab */}
-                <TabsContent value="portfolio" className="space-y-4">
-                    <Card>
-                        <CardHeader className="flex flex-row items-center justify-between">
-                            <CardTitle>Portfolio Overview</CardTitle>
-                            <Button variant="outline" size="sm" onClick={refetchPortfolio}>
-                                <RefreshCw className="h-4 w-4 mr-2" />
-                                Refresh
-                            </Button>
-                        </CardHeader>
-                        <CardContent>
-                            {portfolioLoading ? (
-                                <div className="animate-pulse space-y-4">
-                                    <div className="h-8 bg-gray-200 rounded w-1/2"></div>
-                                    <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                                    <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-                                </div>
-                            ) : portfolioError ? (
-                                <div className="text-red-500 text-center py-4">
-                                    Error loading portfolio: {portfolioError}
-                                </div>
-                            ) : portfolioData ? (
-                                <div className="space-y-4">
-                                    <div className="text-lg font-semibold">
-                                        Portfolio data loaded successfully
-                                    </div>
-                                    <pre className="text-xs bg-gray-100 p-2 rounded overflow-auto max-h-60">
-                                        {JSON.stringify(portfolioData, null, 2)}
-                                    </pre>
-                                </div>
-                            ) : (
-                                <div className="text-center text-muted-foreground py-4">
-                                    No portfolio data available
-                                </div>
-                            )}
-                        </CardContent>
-                    </Card>
-                </TabsContent>
-
-                {/* Prices Tab */}
-                <TabsContent value="prices" className="space-y-4">
-                    <Card>
-                        <CardHeader className="flex flex-row items-center justify-between">
-                            <CardTitle>Token Prices</CardTitle>
-                            <Button variant="outline" size="sm" onClick={refetchPrices}>
-                                <RefreshCw className="h-4 w-4 mr-2" />
-                                Refresh
-                            </Button>
-                        </CardHeader>
-                        <CardContent>
-                            {pricesLoading ? (
-                                <div className="space-y-2">
-                                    {[...Array(3)].map((_, i) => (
-                                        <div key={i} className="animate-pulse flex items-center justify-between p-2">
-                                            <div className="h-4 bg-gray-200 rounded w-1/3"></div>
-                                            <div className="h-4 bg-gray-200 rounded w-1/4"></div>
-                                        </div>
-                                    ))}
-                                </div>
-                            ) : (
-                                <div className="space-y-2">
-                                    {Object.entries(prices).map(([token, price]) => (
-                                        <div key={token} className="flex items-center justify-between p-2 border rounded">
-                                            <div>
-                                                <div className="font-medium">{token.slice(0, 10)}...</div>
-                                                <div className="text-sm text-muted-foreground">Token Address</div>
+                                        ) : prices && Object.keys(prices).length > 0 ? (
+                                            <div className="space-y-3">
+                                                {Object.entries(prices).map(([address, price]: [string, string | number]) => (
+                                                    <motion.div
+                                                        key={address}
+                                                        initial={{ opacity: 0, x: -20 }}
+                                                        animate={{ opacity: 1, x: 0 }}
+                                                        className="flex items-center justify-between p-3 rounded-lg bg-black/30 border border-white/5"
+                                                    >
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="w-8 h-8 rounded-full bg-gradient-to-r from-yellow-500 to-orange-500 flex items-center justify-center">
+                                                                <DollarSign className="h-4 w-4 text-white" />
+                                                            </div>
+                                                            <span className="text-white font-medium">
+                                                                {address.slice(0, 6)}...{address.slice(-4)}
+                                                            </span>
+                                                        </div>
+                                                        <span className="text-green-400 font-medium">
+                                                            ${typeof price === 'number' ? price.toFixed(4) : price}
+                                                        </span>
+                                                    </motion.div>
+                                                ))}
                                             </div>
-                                            <Badge variant="secondary">
-                                                ${typeof price === 'number' ? price.toFixed(4) : 'N/A'}
-                                            </Badge>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                        </CardContent>
-                    </Card>
-                </TabsContent>
-            </Tabs>
+                                        ) : (
+                                            <div className="text-center py-8">
+                                                <TrendingUp className="mx-auto h-12 w-12 text-gray-500 mb-4" />
+                                                <p className="text-gray-400">No price data available</p>
+                                            </div>
+                                        )}
+                                    </CardContent>
+                                </Card>
+                            </TabsContent>
+
+                            {/* History Tab */}
+                            <TabsContent value="history" className="space-y-4">
+                                <Card className="bg-black/50 border-white/10 backdrop-blur-md">
+                                    <CardHeader className="flex flex-row items-center justify-between">
+                                        <CardTitle className="text-white">Transaction History</CardTitle>
+                                        <Button
+                                            onClick={refetchHistory}
+                                            disabled={historyLoading}
+                                            variant="outline"
+                                            size="sm"
+                                            className="border-white/20 text-white hover:bg-white/10"
+                                        >
+                                            {historyLoading ? (
+                                                <RefreshCw className="h-4 w-4 animate-spin" />
+                                            ) : (
+                                                <RefreshCw className="h-4 w-4" />
+                                            )}
+                                        </Button>
+                                    </CardHeader>
+                                    <CardContent>
+                                        {historyLoading ? (
+                                            <div className="space-y-3">
+                                                {[1, 2, 3, 4].map((i) => (
+                                                    <div key={i} className="animate-pulse flex items-center gap-3 p-3">
+                                                        <div className="w-8 h-8 bg-gray-600 rounded-full"></div>
+                                                        <div className="flex-1">
+                                                            <div className="h-4 bg-gray-600 rounded w-32 mb-2"></div>
+                                                            <div className="h-3 bg-gray-600 rounded w-48"></div>
+                                                        </div>
+                                                        <div className="h-4 bg-gray-600 rounded w-20"></div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        ) : history && history.length > 0 ? (
+                                            <div className="space-y-3">
+                                                {history.map((tx: HistoryEvent, index: number) => (
+                                                    <motion.div
+                                                        key={index}
+                                                        initial={{ opacity: 0, y: 10 }}
+                                                        animate={{ opacity: 1, y: 0 }}
+                                                        transition={{ delay: index * 0.05 }}
+                                                        className="flex items-center gap-3 p-3 rounded-lg bg-black/30 border border-white/5"
+                                                    >
+                                                        <div className="w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center">
+                                                            <History className="h-4 w-4 text-white" />
+                                                        </div>
+                                                        <div className="flex-1">
+                                                            <p className="text-white font-medium">
+                                                                {tx.type || 'Transaction'}
+                                                            </p>
+                                                            <p className="text-gray-400 text-sm">
+                                                                {tx.txHash ? `${tx.txHash.slice(0, 10)}...${tx.txHash.slice(-8)}` : 'Unknown hash'}
+                                                            </p>
+                                                        </div>
+                                                        <div className="text-right">
+                                                            <p className="text-white font-medium">
+                                                                {tx.value || 'N/A'}
+                                                            </p>
+                                                            <p className="text-gray-400 text-sm">
+                                                                {tx.timestamp ? new Date(tx.timestamp * 1000).toLocaleDateString() : 'Unknown date'}
+                                                            </p>
+                                                        </div>
+                                                    </motion.div>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <div className="text-center py-8">
+                                                <History className="mx-auto h-12 w-12 text-gray-500 mb-4" />
+                                                <p className="text-gray-400">No transaction history found</p>
+                                            </div>
+                                        )}
+                                    </CardContent>
+                                </Card>
+                            </TabsContent>
+                        </Tabs>
+                    </motion.div>
+                </motion.div>
+                
+                <BackgroundBeams />
+            </div>
         </div>
     );
 };

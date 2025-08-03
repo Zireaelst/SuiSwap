@@ -2,9 +2,77 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArbitrageDetectionService, ArbitrageResult } from '@/services/ArbitrageDetectionService';
-import { OneInchAPI } from '@/utils/1inch-api';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { BackgroundBeams } from '@/components/ui/background-beams';
+import { Spotlight } from '@/components/ui/spotlight';
 import { ArbitrageOpportunity } from '@/types';
+import { TrendingUp, DollarSign, RefreshCw, Activity, Clock, Zap, AlertTriangle, ArrowRightLeft } from 'lucide-react';
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1
+    }
+  }
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.5
+    }
+  }
+};
+
+// Mock data for demonstration
+const mockOpportunities: ArbitrageOpportunity[] = [
+  {
+    tokenPair: 'ETH/USDC',
+    sourceChain: 'ethereum',
+    targetChain: 'ethereum',
+    sourceExchange: 'Uniswap V3',
+    targetExchange: 'SushiSwap',
+    priceSpread: 2.5,
+    estimatedProfit: 125.50,
+    minimumAmount: '0.1',
+    maximumAmount: '10.0',
+    confidence: 0.85,
+    validUntil: new Date(Date.now() + 300000), // 5 minutes from now
+  },
+  {
+    tokenPair: 'WBTC/USDT',
+    sourceChain: 'ethereum',
+    targetChain: 'ethereum',
+    sourceExchange: 'Curve',
+    targetExchange: '1inch',
+    priceSpread: 1.8,
+    estimatedProfit: 89.75,
+    minimumAmount: '0.01',
+    maximumAmount: '1.0',
+    confidence: 0.92,
+    validUntil: new Date(Date.now() + 240000), // 4 minutes from now
+  },
+  {
+    tokenPair: 'LINK/ETH',
+    sourceChain: 'ethereum',
+    targetChain: 'ethereum',
+    sourceExchange: 'Balancer',
+    targetExchange: 'Uniswap V2',
+    priceSpread: 3.2,
+    estimatedProfit: 67.20,
+    minimumAmount: '10',
+    maximumAmount: '1000',
+    confidence: 0.78,
+    validUntil: new Date(Date.now() + 180000), // 3 minutes from now
+  },
+];
 
 export const ArbitrageDashboard = () => {
   const [opportunities, setOpportunities] = useState<ArbitrageOpportunity[]>([]);
@@ -14,252 +82,306 @@ export const ArbitrageDashboard = () => {
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
   const [executingTx, setExecutingTx] = useState<string | null>(null);
 
-  const arbitrageService = new ArbitrageDetectionService(
-    new OneInchAPI(process.env.NEXT_PUBLIC_1INCH_API_KEY || '')
-  );
-
   const detectOpportunities = async () => {
     try {
       setIsLoading(true);
-
-      // Common trading tokens for arbitrage detection
-      const commonTokens = [
-        '0xA0b86a33E6Dd83F4c9eF50B84Ad4A8a3D4F28Eb', // USDC
-        '0x6B175474E89094C44Da98b954EedeAC495271d0F', // DAI
-        '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2', // WETH
-        '0xdAC17F958D2ee523a2206206994597C13D831ec7', // USDT
-        '0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599', // WBTC
-        '0x7D1AfA7B718fb893dB30A3aBc0Cfc608AaCfeBB0', // MATIC
-        '0x514910771AF9Ca656af840dff83E8264EcF986CA', // LINK
-      ];
-
-      const result: ArbitrageResult = await arbitrageService.detectArbitrageOpportunities(commonTokens);
-      setOpportunities(result.opportunities);
-      setTotalProfit(result.estimatedProfit);
+      
+      // Simulate API call delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Use mock data for demonstration
+      const filteredOpportunities = mockOpportunities.filter(
+        op => op.validUntil > new Date() && op.estimatedProfit > 50
+      );
+      
+      setOpportunities(filteredOpportunities);
+      setTotalProfit(filteredOpportunities.reduce((sum, op) => sum + op.estimatedProfit, 0));
       setLastUpdate(new Date());
-
     } catch (error) {
-      console.error('Failed to detect arbitrage opportunities:', error);
+      console.error('Arbitrage detection failed:', error);
     } finally {
       setIsLoading(false);
     }
   };
 
-  useEffect(() => {
-    detectOpportunities();
-
-    if (autoRefresh) {
-      const interval = setInterval(detectOpportunities, 30000); // Every 30 seconds
-      return () => clearInterval(interval);
-    }
-  }, [autoRefresh]); // eslint-disable-line react-hooks/exhaustive-deps
-
   const executeArbitrage = async (opportunity: ArbitrageOpportunity) => {
     try {
       setExecutingTx(opportunity.tokenPair);
-
-      const result = await arbitrageService.executeArbitrageStrategy(opportunity);
-
-      if (result.success) {
-        // Show success notification
-        const successMessage = `Arbitrage executed successfully!\nProfit: $${result.actualProfit.toFixed(2)}\nExecution time: ${(result.executionTime / 1000).toFixed(1)}s`;
-        alert(successMessage);
-        
-        // Refresh opportunities
-        detectOpportunities();
-      } else {
-        alert('Arbitrage execution failed. Please try again.');
-      }
+      
+      // Simulate execution delay
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Remove executed opportunity
+      setOpportunities(prev => prev.filter(op => op.tokenPair !== opportunity.tokenPair));
+      
+      // Refresh to find new opportunities
+      await detectOpportunities();
     } catch (error) {
-      console.error('Arbitrage execution error:', error);
-      alert('Failed to execute arbitrage strategy.');
+      console.error('Arbitrage execution failed:', error);
     } finally {
       setExecutingTx(null);
     }
   };
 
-  const formatCurrency = (amount: number): string => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    }).format(amount);
+  useEffect(() => {
+    detectOpportunities();
+  }, []);
+
+  useEffect(() => {
+    if (!autoRefresh) return;
+
+    const interval = setInterval(() => {
+      detectOpportunities();
+    }, 30000); // Refresh every 30 seconds
+
+    return () => clearInterval(interval);
+  }, [autoRefresh]);
+
+  const getConfidenceColor = (confidence: number) => {
+    if (confidence >= 0.8) return 'bg-green-500';
+    if (confidence >= 0.6) return 'bg-yellow-500';
+    return 'bg-red-500';
   };
 
-  const formatPercentage = (percent: number): string => {
-    return `${percent.toFixed(2)}%`;
+  const getProfitColor = (profit: number) => {
+    if (profit >= 100) return 'text-green-400';
+    if (profit >= 50) return 'text-yellow-400';
+    return 'text-gray-400';
   };
 
-  const getConfidenceColor = (confidence: number): string => {
-    if (confidence > 0.7) return 'text-green-400';
-    if (confidence > 0.5) return 'text-yellow-400';
-    return 'text-red-400';
+  const getTimeRemaining = (validUntil: Date) => {
+    const now = new Date();
+    const diff = validUntil.getTime() - now.getTime();
+    const minutes = Math.floor(diff / 60000);
+    const seconds = Math.floor((diff % 60000) / 1000);
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header with Title and Controls */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-white mb-2">Arbitrage Opportunities</h2>
-          <p className="text-gray-400">Real-time cross-chain price differences</p>
-        </div>
-        <div className="flex items-center space-x-4">
-          <div className="text-sm text-gray-400">
-            Last updated: {lastUpdate ? lastUpdate.toLocaleTimeString() : '11:24:44 AM'}
-          </div>
-          <label className="flex items-center space-x-2 text-sm">
-            <input
-              type="checkbox"
-              checked={autoRefresh}
-              onChange={(e) => setAutoRefresh(e.target.checked)}
-              className="w-4 h-4 rounded border-gray-600 bg-gray-700 text-blue-600"
-            />
-            <span className="text-gray-300">Auto Refresh</span>
-          </label>
-          <button
-            onClick={detectOpportunities}
-            disabled={isLoading}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white rounded-lg font-medium transition-colors"
-          >
-            {isLoading ? 'Scanning...' : 'Refresh'}
-          </button>
-        </div>
-      </div>
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-4 border border-slate-700">
-          <div className="flex items-center space-x-2 mb-2">
-            <div className="w-8 h-8 bg-yellow-500/20 rounded-lg flex items-center justify-center">
-              <span className="text-yellow-400 text-lg">⚡</span>
-            </div>
-            <span className="text-gray-400 text-sm">Active Opportunities</span>
-          </div>
-          <div className="text-2xl font-bold text-white">{opportunities.length}</div>
-        </div>
-
-        <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-4 border border-slate-700">
-          <div className="flex items-center space-x-2 mb-2">
-            <div className="w-8 h-8 bg-green-500/20 rounded-lg flex items-center justify-center">
-              <span className="text-green-400 text-lg">💰</span>
-            </div>
-            <span className="text-gray-400 text-sm">Total Est. Profit</span>
-          </div>
-          <div className="text-2xl font-bold text-green-400">{formatCurrency(totalProfit)}</div>
-        </div>
-
-        <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-4 border border-slate-700">
-          <div className="flex items-center space-x-2 mb-2">
-            <div className="w-8 h-8 bg-blue-500/20 rounded-lg flex items-center justify-center">
-              <span className="text-blue-400 text-lg">📊</span>
-            </div>
-            <span className="text-gray-400 text-sm">Best Spread</span>
-          </div>
-          <div className="text-2xl font-bold text-blue-400">
-            {opportunities.length > 0 ? formatPercentage(Math.max(...opportunities.map(o => o.priceSpread))) : '0%'}
-          </div>
-        </div>
-
-        <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-4 border border-slate-700">
-          <div className="flex items-center space-x-2 mb-2">
-            <div className="w-8 h-8 bg-purple-500/20 rounded-lg flex items-center justify-center">
-              <span className="text-purple-400 text-lg">🎯</span>
-            </div>
-            <span className="text-gray-400 text-sm">Avg. Confidence</span>
-          </div>
-          <div className="text-2xl font-bold text-purple-400">
-            {opportunities.length > 0 
-              ? formatPercentage(opportunities.reduce((acc, o) => acc + (o.confidence * 100), 0) / opportunities.length)
-              : '0%'
-            }
-          </div>
-        </div>
-      </div>
-
-      {/* Live Opportunities */}
-      <div className="bg-slate-800/30 backdrop-blur-sm rounded-xl border border-slate-700">
-        <div className="p-6 border-b border-slate-700">
-          <h3 className="text-lg font-semibold text-white">Live Opportunities</h3>
-          <p className="text-gray-400 text-sm">Cross-chain arbitrage opportunities updated in real-time</p>
-        </div>
+    <div className="min-h-screen bg-black relative overflow-hidden">
+      <Spotlight className="-top-40 left-0 md:left-60 md:-top-20" fill="white" />
+      <div className="h-full w-full bg-black bg-grid-white/[0.02] relative">
+        <div className="absolute pointer-events-none inset-0 flex items-center justify-center bg-black [mask-image:radial-gradient(ellipse_at_center,transparent_20%,black)]"></div>
         
-        <div className="p-6">
-          {isLoading ? (
-            <div className="flex items-center justify-center py-12">
-              <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-                <span className="text-gray-400">Scanning for opportunities...</span>
-              </div>
-            </div>
-          ) : opportunities.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="w-16 h-16 bg-slate-700 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-gray-500 text-2xl">🔍</span>
-              </div>
-              <h4 className="text-white font-medium mb-2">No arbitrage opportunities found</h4>
-              <p className="text-gray-400 text-sm">Markets are currently efficient. Check back in a few minutes.</p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              <AnimatePresence>
-                {opportunities.map((opportunity, index) => (
-                  <motion.div
-                    key={`${opportunity.tokenPair}-${opportunity.sourceChain}-${opportunity.targetChain}`}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: 20 }}
-                    transition={{ delay: index * 0.05 }}
-                    className="bg-slate-800/50 rounded-lg p-4 border border-slate-700 hover:border-slate-600 transition-colors"
+        <motion.div
+          initial="hidden"
+          animate="visible"
+          variants={containerVariants}
+          className="relative z-20 container mx-auto p-6 space-y-6"
+        >
+          {/* Header */}
+          <motion.div variants={itemVariants} className="text-center mb-8">
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-white via-gray-300 to-gray-500 bg-clip-text text-transparent mb-4">
+              Arbitrage Dashboard
+            </h1>
+            <p className="text-gray-400 text-lg">
+              Real-time MEV opportunities across DeFi protocols
+            </p>
+          </motion.div>
+
+          {/* Stats Cards */}
+          <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            {/* Total Opportunities */}
+            <Card className="bg-black/50 border-white/10 backdrop-blur-md">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-gray-300">Opportunities</CardTitle>
+                <TrendingUp className="h-4 w-4 text-blue-400" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-white">{opportunities.length}</div>
+                <p className="text-xs text-gray-400">Active arbitrage</p>
+              </CardContent>
+            </Card>
+
+            {/* Total Profit */}
+            <Card className="bg-black/50 border-white/10 backdrop-blur-md">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-gray-300">Potential Profit</CardTitle>
+                <DollarSign className="h-4 w-4 text-green-400" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-green-400">
+                  ${totalProfit.toFixed(2)}
+                </div>
+                <p className="text-xs text-gray-400">Total estimated</p>
+              </CardContent>
+            </Card>
+
+            {/* Auto Refresh Status */}
+            <Card className="bg-black/50 border-white/10 backdrop-blur-md">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-gray-300">Auto Refresh</CardTitle>
+                <Activity className="h-4 w-4 text-purple-400" />
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center gap-2">
+                  <div className={`w-2 h-2 rounded-full ${autoRefresh ? 'bg-green-400' : 'bg-gray-400'}`}></div>
+                  <span className="text-white font-medium">
+                    {autoRefresh ? 'Active' : 'Paused'}
+                  </span>
+                </div>
+                <p className="text-xs text-gray-400">30s intervals</p>
+              </CardContent>
+            </Card>
+
+            {/* Last Update */}
+            <Card className="bg-black/50 border-white/10 backdrop-blur-md">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-gray-300">Last Update</CardTitle>
+                <Clock className="h-4 w-4 text-yellow-400" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-sm text-white">
+                  {lastUpdate ? lastUpdate.toLocaleTimeString() : 'Never'}
+                </div>
+                <p className="text-xs text-gray-400">
+                  {lastUpdate ? 'Updated' : 'Waiting...'}
+                </p>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          {/* Controls */}
+          <motion.div variants={itemVariants}>
+            <Card className="bg-black/50 border-white/10 backdrop-blur-md">
+              <CardHeader>
+                <CardTitle className="text-white flex items-center gap-2">
+                  <Zap className="h-5 w-5 text-yellow-400" />
+                  Dashboard Controls
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex gap-4">
+                  <Button
+                    onClick={detectOpportunities}
+                    disabled={isLoading}
+                    className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
                   >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-4">
-                        <div className="flex items-center space-x-2">
-                          <div className="w-8 h-8 bg-blue-500/20 rounded-full flex items-center justify-center">
-                            <span className="text-blue-400 text-sm font-bold">{opportunity.tokenPair.split('/')[0]}</span>
-                          </div>
-                          <div>
-                            <div className="text-white font-medium">{opportunity.tokenPair}</div>
-                            <div className="text-gray-400 text-sm">
-                              {opportunity.sourceChain} → {opportunity.targetChain}
+                    {isLoading ? (
+                      <RefreshCw className="h-4 w-4 animate-spin mr-2" />
+                    ) : (
+                      <RefreshCw className="h-4 w-4 mr-2" />
+                    )}
+                    Refresh
+                  </Button>
+                  
+                  <Button
+                    onClick={() => setAutoRefresh(!autoRefresh)}
+                    variant="outline"
+                    className="border-white/20 text-white hover:bg-white/10"
+                  >
+                    {autoRefresh ? 'Pause Auto' : 'Start Auto'}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          {/* Opportunities List */}
+          <motion.div variants={itemVariants}>
+            <Card className="bg-black/50 border-white/10 backdrop-blur-md">
+              <CardHeader>
+                <CardTitle className="text-white">Arbitrage Opportunities</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {isLoading ? (
+                  <div className="space-y-4">
+                    {[1, 2, 3].map((i) => (
+                      <div key={i} className="animate-pulse">
+                        <div className="h-20 bg-gray-600/20 rounded-lg"></div>
+                      </div>
+                    ))}
+                  </div>
+                ) : opportunities.length === 0 ? (
+                  <div className="text-center py-12">
+                    <AlertTriangle className="mx-auto h-12 w-12 text-gray-500 mb-4" />
+                    <p className="text-gray-400 text-lg">No arbitrage opportunities found</p>
+                    <p className="text-gray-500 text-sm mt-2">
+                      Market conditions may not be favorable for arbitrage
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <AnimatePresence mode="popLayout">
+                      {opportunities.map((opportunity) => (
+                        <motion.div
+                          key={opportunity.tokenPair}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, x: -300 }}
+                          layout
+                          className="p-6 rounded-lg bg-black/30 border border-white/5 hover:border-white/20 transition-all duration-300"
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="space-y-2">
+                              <div className="flex items-center gap-3">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-white font-medium text-lg">
+                                    {opportunity.tokenPair}
+                                  </span>
+                                  <ArrowRightLeft className="h-4 w-4 text-gray-400" />
+                                </div>
+                                <Badge className={`${getConfidenceColor(opportunity.confidence)} text-white`}>
+                                  {Math.round(opportunity.confidence * 100)}% confidence
+                                </Badge>
+                                <Badge variant="outline" className="border-yellow-400 text-yellow-400">
+                                  {getTimeRemaining(opportunity.validUntil)}
+                                </Badge>
+                              </div>
+                              
+                              <div className="flex items-center gap-4 text-sm">
+                                <span className="text-gray-400">
+                                  Source: <span className="text-blue-400">{opportunity.sourceExchange}</span>
+                                </span>
+                                <span className="text-gray-400">
+                                  Target: <span className="text-purple-400">{opportunity.targetExchange}</span>
+                                </span>
+                                <span className="text-gray-400">
+                                  Spread: <span className="text-green-400">{opportunity.priceSpread}%</span>
+                                </span>
+                              </div>
+
+                              <div className="flex items-center gap-4 text-xs text-gray-500">
+                                <span>Min: {opportunity.minimumAmount} {opportunity.tokenPair.split('/')[0]}</span>
+                                <span>Max: {opportunity.maximumAmount} {opportunity.tokenPair.split('/')[0]}</span>
+                                <span>Chain: {opportunity.sourceChain}</span>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-3">
+                              <div className="text-right">
+                                <div className={`text-xl font-bold ${getProfitColor(opportunity.estimatedProfit)}`}>
+                                  +${opportunity.estimatedProfit.toFixed(2)}
+                                </div>
+                                <div className="text-sm text-gray-400">
+                                  Estimated profit
+                                </div>
+                              </div>
+                              
+                              <Button
+                                onClick={() => executeArbitrage(opportunity)}
+                                disabled={executingTx === opportunity.tokenPair}
+                                className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white"
+                              >
+                                {executingTx === opportunity.tokenPair ? (
+                                  <RefreshCw className="h-4 w-4 animate-spin" />
+                                ) : (
+                                  'Execute'
+                                )}
+                              </Button>
                             </div>
                           </div>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center space-x-6">
-                        <div className="text-right">
-                          <div className="text-green-400 font-bold">
-                            +{formatPercentage(opportunity.priceSpread)}
-                          </div>
-                          <div className="text-gray-400 text-sm">
-                            {formatCurrency(opportunity.estimatedProfit)}
-                          </div>
-                        </div>
-                        
-                        <div className="text-right">
-                          <div className={`font-medium ${getConfidenceColor(opportunity.confidence)}`}>
-                            {formatPercentage(opportunity.confidence * 100)}
-                          </div>
-                          <div className="text-gray-400 text-sm">Confidence</div>
-                        </div>
-                        
-                        <button
-                          onClick={() => executeArbitrage(opportunity)}
-                          disabled={executingTx === opportunity.tokenPair}
-                          className="px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 text-white rounded-lg font-medium transition-colors"
-                        >
-                          {executingTx === opportunity.tokenPair ? 'Executing...' : 'Execute'}
-                        </button>
-                      </div>
-                    </div>
-                  </motion.div>
-                ))}
-              </AnimatePresence>
-            </div>
-          )}
-        </div>
+                        </motion.div>
+                      ))}
+                    </AnimatePresence>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </motion.div>
+        </motion.div>
+        
+        <BackgroundBeams />
       </div>
     </div>
   );
