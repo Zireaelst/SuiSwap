@@ -8,6 +8,7 @@ import { Spotlight } from "@/components/ui/spotlight";
 import { FloatingDock } from "@/components/ui/floating-dock";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { 
   BarChart3, 
   TrendingUp, 
@@ -16,7 +17,13 @@ import {
   Zap,
   ArrowUpDown,
   DollarSign,
-  Activity
+  Activity,
+  Target,
+  ChevronRight,
+  CheckCircle,
+  Globe,
+  Lock,
+  Layers
 } from "lucide-react";
 
 const statsCards = [
@@ -28,23 +35,23 @@ const statsCards = [
     color: "text-green-500"
   },
   {
-    title: "Active Orders",
-    value: "1,247",
-    change: "+5.2%",
+    title: "Active Users",
+    value: "12,847",
+    change: "+25.2%",
     icon: Activity,
     color: "text-blue-500"
   },
   {
-    title: "Average Slippage",
-    value: "0.15%",
-    change: "-0.05%",
-    icon: TrendingUp,
+    title: "Cross-Chain Bridges",
+    value: "127",
+    change: "+8.3%",
+    icon: Globe,
     color: "text-purple-500"
   },
   {
-    title: "Gas Saved",
-    value: "$45K",
-    change: "+8.3%",
+    title: "Gas Optimized",
+    value: "94.2%",
+    change: "+3.1%",
     icon: Zap,
     color: "text-orange-500"
   }
@@ -54,6 +61,7 @@ const dockItems = [
   { title: "Trading", icon: <ArrowUpDown className="h-6 w-6" />, href: "/trading" },
   { title: "Portfolio", icon: <BarChart3 className="h-6 w-6" />, href: "/portfolio" },
   { title: "Analytics", icon: <TrendingUp className="h-6 w-6" />, href: "/analytics" },
+  { title: "Arbitrage", icon: <Target className="h-6 w-6" />, href: "/arbitrage" },
   { title: "Docs", icon: <Shield className="h-6 w-6" />, href: "/docs" },
 ];
 
@@ -144,11 +152,157 @@ export default function HomePage() {
 
             {/* Right Content - Swap Interface */}
             <motion.div
+              className="lg:order-2"
               initial={{ opacity: 0, x: 50 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
             >
               <ModernSwapInterface />
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* Advanced Features Section */}
+      <section className="relative px-4 py-20 sm:px-6 lg:px-8 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/20 dark:to-purple-950/20">
+        <div className="mx-auto max-w-7xl">
+          <motion.div
+            className="text-center mb-16"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            viewport={{ once: true }}
+          >
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              Advanced <span className="gradient-text">DeFi Features</span>
+            </h2>
+            <p className="text-xl text-muted-foreground">
+              Professional trading tools for sophisticated strategies
+            </p>
+          </motion.div>
+
+          <div className="grid lg:grid-cols-3 gap-8">
+            {/* Advanced Trading Features */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              viewport={{ once: true }}
+            >
+              <Card className="glassmorphism border-0 h-full">
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <Target className="h-5 w-5 text-purple-500" />
+                    <span>Arbitrage Detection</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <p className="text-sm text-muted-foreground">
+                      Real-time cross-chain arbitrage opportunities with intelligent profit calculations and automated execution.
+                    </p>
+                    <div className="space-y-2">
+                      <div className="flex items-center space-x-2">
+                        <CheckCircle className="h-4 w-4 text-green-500" />
+                        <span className="text-sm">Cross-DEX price monitoring</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <CheckCircle className="h-4 w-4 text-green-500" />
+                        <span className="text-sm">Gas-optimized execution</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <CheckCircle className="h-4 w-4 text-green-500" />
+                        <span className="text-sm">Risk-adjusted profits</span>
+                      </div>
+                    </div>
+                    <Button variant="outline" className="w-full" asChild>
+                      <a href="/trading">Start Trading <ChevronRight className="h-4 w-4 ml-1" /></a>
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            {/* MEV Protection */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.1 }}
+              viewport={{ once: true }}
+            >
+              <Card className="glassmorphism border-0 h-full">
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <Shield className="h-5 w-5 text-blue-500" />
+                    <span>MEV Protection</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <p className="text-sm text-muted-foreground">
+                      Advanced protection against Maximum Extractable Value attacks using Flashbots and commit-reveal schemes.
+                    </p>
+                    <div className="space-y-2">
+                      <div className="flex items-center space-x-2">
+                        <Lock className="h-4 w-4 text-blue-500" />
+                        <span className="text-sm">Flashbots integration</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Lock className="h-4 w-4 text-blue-500" />
+                        <span className="text-sm">Front-running protection</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Lock className="h-4 w-4 text-blue-500" />
+                        <span className="text-sm">Risk analysis</span>
+                      </div>
+                    </div>
+                    <Button variant="outline" className="w-full" asChild>
+                      <a href="/trading">Enable Protection <ChevronRight className="h-4 w-4 ml-1" /></a>
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            {/* Cross-Chain Infrastructure */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              viewport={{ once: true }}
+            >
+              <Card className="glassmorphism border-0 h-full">
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <Layers className="h-5 w-5 text-green-500" />
+                    <span>Cross-Chain Trading</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <p className="text-sm text-muted-foreground">
+                      Seamless trading between Ethereum and Sui networks with HTLC security and atomic swaps.
+                    </p>
+                    <div className="space-y-2">
+                      <div className="flex items-center space-x-2">
+                        <Globe className="h-4 w-4 text-green-500" />
+                        <span className="text-sm">Ethereum & Sui support</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Globe className="h-4 w-4 text-green-500" />
+                        <span className="text-sm">HTLC security</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Globe className="h-4 w-4 text-green-500" />
+                        <span className="text-sm">Atomic execution</span>
+                      </div>
+                    </div>
+                    <Button variant="outline" className="w-full" asChild>
+                      <a href="/trading">Bridge Assets <ChevronRight className="h-4 w-4 ml-1" /></a>
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
             </motion.div>
           </div>
         </div>
