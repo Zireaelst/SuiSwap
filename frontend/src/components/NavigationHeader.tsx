@@ -1,5 +1,6 @@
 "use client";
 import React, { useState } from "react";
+import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -23,6 +24,7 @@ export const NavigationHeader = () => {
     { name: "Trading", href: "/trading", icon: ArrowUpDown },
     { name: "Portfolio", href: "/portfolio", icon: BarChart3 },
     { name: "Analytics", href: "/analytics", icon: Zap },
+    { name: "1inch APIs", href: "/oneinch", icon: Shield },
     { name: "Docs", href: "/docs", icon: Shield },
   ];
 
@@ -56,22 +58,25 @@ export const NavigationHeader = () => {
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-1">
             {navItems.map((item, index) => (
-              <motion.a
+              <motion.div
                 key={item.name}
-                href={item.href}
-                className={cn(
-                  "flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors",
-                  "hover:bg-accent hover:text-accent-foreground"
-                )}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 + 0.2 }}
               >
-                <item.icon className="h-4 w-4" />
-                <span>{item.name}</span>
-              </motion.a>
+                <Link
+                  href={item.href}
+                  className={cn(
+                    "flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors",
+                    "hover:bg-accent hover:text-accent-foreground"
+                  )}
+                >
+                  <item.icon className="h-4 w-4" />
+                  <span>{item.name}</span>
+                </Link>
+              </motion.div>
             ))}
           </div>
 
@@ -145,18 +150,21 @@ export const NavigationHeader = () => {
           >
             <div className="glassmorphism m-4 rounded-2xl p-6 space-y-4">
               {navItems.map((item, index) => (
-                <motion.a
+                <motion.div
                   key={item.name}
-                  href={item.href}
-                  className="flex items-center space-x-3 p-3 rounded-lg hover:bg-accent transition-colors"
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: index * 0.1 }}
-                  onClick={() => setIsMenuOpen(false)}
                 >
-                  <item.icon className="h-5 w-5" />
-                  <span className="font-medium">{item.name}</span>
-                </motion.a>
+                  <Link
+                    href={item.href}
+                    className="flex items-center space-x-3 p-3 rounded-lg hover:bg-accent transition-colors"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    <item.icon className="h-5 w-5" />
+                    <span className="font-medium">{item.name}</span>
+                  </Link>
+                </motion.div>
               ))}
             </div>
           </motion.div>
