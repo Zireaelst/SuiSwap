@@ -307,6 +307,234 @@ const CrossChainBridgeInterface: React.FC<CrossChainBridgeInterfaceProps> = ({ a
   );
 };
 
+// Limit Orders Interface Component
+interface LimitOrdersInterfaceProps {
+  apiKey: string;
+  walletAddress?: string;
+}
+
+const LimitOrdersInterface: React.FC<LimitOrdersInterfaceProps> = ({ apiKey, walletAddress }) => {
+  const { orders, createOrder, cancelOrder, isLoading } = useLimitOrders(walletAddress);
+  const [orderType, setOrderType] = useState<'limit' | 'stop-loss' | 'dutch'>('limit');
+  
+  const orderStats = {
+    totalOrders: orders.length,
+    activeOrders: orders.filter(o => o.status === 'active').length,
+    filledOrders: orders.filter(o => o.status === 'filled').length,
+    totalVolume: '$1.2M',
+  };
+
+  return (
+    <div className="space-y-6 max-w-6xl mx-auto">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+      >
+        <Card className="glassmorphism border-0 shadow-lg">
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <Target className="h-5 w-5 text-green-500" />
+              <span>Advanced Limit Orders</span>
+              <Badge variant="secondary" className="ml-2">1inch Protocol</Badge>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {/* Stats Grid */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+              <div className="p-4 glassmorphism rounded-xl hover-lift">
+                <div className="text-xs text-muted-foreground mb-1">Total Orders</div>
+                <div className="text-xl font-bold gradient-text">{orderStats.totalOrders}</div>
+              </div>
+              <div className="p-4 glassmorphism rounded-xl hover-lift">
+                <div className="text-xs text-muted-foreground mb-1">Active</div>
+                <div className="text-xl font-bold text-green-500">{orderStats.activeOrders}</div>
+              </div>
+              <div className="p-4 glassmorphism rounded-xl hover-lift">
+                <div className="text-xs text-muted-foreground mb-1">Filled</div>
+                <div className="text-xl font-bold text-blue-500">{orderStats.filledOrders}</div>
+              </div>
+              <div className="p-4 glassmorphism rounded-xl hover-lift">
+                <div className="text-xs text-muted-foreground mb-1">Volume</div>
+                <div className="text-xl font-bold text-purple-500">{orderStats.totalVolume}</div>
+              </div>
+            </div>
+
+            {/* Order Type Selector */}
+            <div className="flex space-x-2 mb-6">
+              {(['limit', 'stop-loss', 'dutch'] as const).map((type) => (
+                <Button
+                  key={type}
+                  variant={orderType === type ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setOrderType(type)}
+                  className="glassmorphism"
+                >
+                  {type.charAt(0).toUpperCase() + type.slice(1)} Orders
+                </Button>
+              ))}
+            </div>
+
+            {/* Order Management Interface */}
+            <div className="grid md:grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <h3 className="font-medium text-white">Create {orderType.charAt(0).toUpperCase() + orderType.slice(1)} Order</h3>
+                <div className="p-4 glassmorphism rounded-xl">
+                  <div className="text-sm text-muted-foreground">
+                    Order creation interface will be implemented here with proper form validation
+                    and 1inch Limit Order Protocol integration.
+                  </div>
+                </div>
+              </div>
+              
+              <div className="space-y-4">
+                <h3 className="font-medium text-white">Recent Orders</h3>
+                <div className="space-y-2 max-h-64 overflow-y-auto">
+                  {orders.slice(0, 5).map((order) => (
+                    <div key={order.id} className="p-3 glassmorphism rounded-lg">
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <div className="text-sm font-medium">
+                            {order.tokenInSymbol || order.fromToken} → {order.tokenOutSymbol || order.toToken}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {order.amountIn || order.fromAmount} @ {order.price || order.targetPrice}
+                          </div>
+                        </div>
+                        <Badge variant={order.status === 'active' ? 'default' : 'secondary'}>
+                          {order.status}
+                        </Badge>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
+    </div>
+  );
+};
+
+// Fusion+ Interface Component
+interface FusionPlusInterfaceProps {
+  apiKey: string;
+  walletAddress?: string;
+}
+
+const FusionPlusInterface: React.FC<FusionPlusInterfaceProps> = ({ apiKey, walletAddress }) => {
+  const [sourceChain, setSourceChain] = useState<'ethereum' | 'polygon' | 'bsc'>('ethereum');
+  const [targetChain, setTargetChain] = useState<'ethereum' | 'polygon' | 'bsc'>('polygon');
+  
+  const fusionStats = {
+    totalBridged: '$127M',
+    successRate: '99.8%',
+    avgTime: '12min',
+    bridgeFees: '0.05%',
+  };
+
+  return (
+    <div className="space-y-6 max-w-6xl mx-auto">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+      >
+        <Card className="glassmorphism border-0 shadow-lg">
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <Globe className="h-5 w-5 text-purple-500" />
+              <span>Fusion+ Cross-Chain Bridge</span>
+              <Badge variant="secondary" className="ml-2">HTLC Secured</Badge>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {/* Stats Grid */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+              <div className="p-4 glassmorphism rounded-xl hover-lift">
+                <div className="text-xs text-muted-foreground mb-1">Total Bridged</div>
+                <div className="text-xl font-bold text-blue-500">{fusionStats.totalBridged}</div>
+              </div>
+              <div className="p-4 glassmorphism rounded-xl hover-lift">
+                <div className="text-xs text-muted-foreground mb-1">Success Rate</div>
+                <div className="text-xl font-bold text-green-500">{fusionStats.successRate}</div>
+              </div>
+              <div className="p-4 glassmorphism rounded-xl hover-lift">
+                <div className="text-xs text-muted-foreground mb-1">Avg Time</div>
+                <div className="text-xl font-bold text-blue-500">{fusionStats.avgTime}</div>
+              </div>
+              <div className="p-4 glassmorphism rounded-xl hover-lift">
+                <div className="text-xs text-muted-foreground mb-1">Bridge Fees</div>
+                <div className="text-xl font-bold text-orange-500">{fusionStats.bridgeFees}</div>
+              </div>
+            </div>
+
+            {/* Chain Selector */}
+            <div className="grid md:grid-cols-2 gap-6 mb-6">
+              <div className="space-y-3">
+                <label className="text-sm font-medium text-gray-300">Source Chain</label>
+                <div className="flex space-x-2">
+                  {(['ethereum', 'polygon', 'bsc'] as const).map((chain) => (
+                    <Button
+                      key={chain}
+                      variant={sourceChain === chain ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setSourceChain(chain)}
+                      className="glassmorphism capitalize"
+                    >
+                      {chain}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+              
+              <div className="space-y-3">
+                <label className="text-sm font-medium text-gray-300">Target Chain</label>
+                <div className="flex space-x-2">
+                  {(['ethereum', 'polygon', 'bsc'] as const).map((chain) => (
+                    <Button
+                      key={chain}
+                      variant={targetChain === chain ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setTargetChain(chain)}
+                      className="glassmorphism capitalize"
+                      disabled={chain === sourceChain}
+                    >
+                      {chain}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Bridge Interface */}
+            <div className="p-6 glassmorphism rounded-xl">
+              <div className="text-center">
+                <div className="text-sm text-muted-foreground mb-4">
+                  Cross-chain atomic swap interface with HTLC security will be implemented here.
+                  Integration with 1inch Fusion+ SDK for secure cross-chain transfers.
+                </div>
+                <div className="flex items-center justify-center space-x-4">
+                  <div className="px-4 py-2 bg-blue-500/20 rounded-lg">
+                    <div className="text-xs text-blue-400">Source</div>
+                    <div className="text-sm font-medium capitalize">{sourceChain}</div>
+                  </div>
+                  <ArrowUpDown className="h-5 w-5 text-muted-foreground" />
+                  <div className="px-4 py-2 bg-purple-500/20 rounded-lg">
+                    <div className="text-xs text-purple-400">Target</div>
+                    <div className="text-sm font-medium capitalize">{targetChain}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
+    </div>
+  );
+};
+
 // MEV Protection Interface Component
 interface MEVProtectionInterfaceProps {
   enabled: boolean;
@@ -498,7 +726,7 @@ const MEVProtectionInterface: React.FC<MEVProtectionInterfaceProps> = ({
 };
 
 export default function TradingPage() {
-  const [activeTab, setActiveTab] = useState<'swap' | 'arbitrage' | 'mev' | 'twap' | 'bridge'>('swap');
+  const [activeTab, setActiveTab] = useState<'swap' | 'arbitrage' | 'mev' | 'twap' | 'limit' | 'fusion' | 'bridge'>('swap');
   const [mevProtectionEnabled, setMevProtectionEnabled] = useState(true);
   const [mevRiskLevel, setMevRiskLevel] = useState<'low' | 'medium' | 'high'>('medium');
   
@@ -520,6 +748,20 @@ export default function TradingPage() {
       icon: Target,
       description: 'Discover and execute profitable arbitrage opportunities',
       track: '1inch API Integration'
+    },
+    { 
+      id: 'limit' as const, 
+      label: 'Limit Orders', 
+      icon: Target,
+      description: 'Set target prices with advanced order types and TWAP execution',
+      track: 'Limit Order Protocol'
+    },
+    { 
+      id: 'fusion' as const, 
+      label: 'Fusion+', 
+      icon: Globe,
+      description: 'Cross-chain atomic swaps with HTLC security',
+      track: 'Fusion+ Protocol'
     },
     { 
       id: 'twap' as const, 
@@ -647,7 +889,7 @@ export default function TradingPage() {
 
           {/* Trading Strategy Cards */}
           <motion.div
-            className="grid md:grid-cols-5 gap-4 mb-12"
+            className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.5 }}
@@ -655,7 +897,7 @@ export default function TradingPage() {
             {tradingTabs.map((tab, index) => (
               <motion.div
                 key={tab.id}
-                className={`p-4 glassmorphism rounded-xl border cursor-pointer transition-all hover-lift ${
+                className={`p-3 glassmorphism rounded-xl border cursor-pointer transition-all hover-lift ${
                   activeTab === tab.id
                     ? 'border-blue-500/50 bg-blue-500/10'
                     : 'border-white/10 hover:border-blue-500/30'
@@ -666,8 +908,8 @@ export default function TradingPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.6 + index * 0.1 }}
               >
-                <div className="flex items-center space-x-2 mb-2">
-                  <div className={`p-1.5 rounded-lg ${
+                <div className="flex flex-col items-center text-center space-y-2">
+                  <div className={`p-2 rounded-lg ${
                     activeTab === tab.id 
                       ? 'bg-blue-500/20 text-blue-400' 
                       : 'bg-white/10 text-muted-foreground'
@@ -675,11 +917,10 @@ export default function TradingPage() {
                     <tab.icon className="h-4 w-4" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-sm">{tab.label}</h3>
-                    <Badge variant="outline" className="text-xs mt-1">{tab.track}</Badge>
+                    <h3 className="font-semibold text-xs">{tab.label}</h3>
+                    <Badge variant="outline" className="text-xs mt-1 scale-75">{tab.track}</Badge>
                   </div>
                 </div>
-                <p className="text-xs text-muted-foreground leading-tight">{tab.description}</p>
               </motion.div>
             ))}
           </motion.div>
@@ -713,6 +954,20 @@ export default function TradingPage() {
                   <ArbitrageDashboard />
                 </motion.div>
               </div>
+            )}
+
+            {activeTab === 'limit' && (
+              <LimitOrdersInterface 
+                apiKey={apiKey}
+                walletAddress={walletAddress}
+              />
+            )}
+
+            {activeTab === 'fusion' && (
+              <FusionPlusInterface 
+                apiKey={apiKey}
+                walletAddress={walletAddress}
+              />
             )}
 
             {activeTab === 'twap' && (

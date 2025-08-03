@@ -1,6 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -38,22 +39,28 @@ export const NavigationHeader = () => {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-20 items-center justify-between">
           {/* Logo */}
-          <motion.div
-            className="flex items-center space-x-3"
-            whileHover={{ scale: 1.05 }}
-            transition={{ type: "spring", stiffness: 400, damping: 25 }}
-          >
-            <div className="relative">
-              <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-                <span className="text-white font-bold text-lg">K</span>
+          <Link href="/" className="flex items-center">
+            <motion.div
+              className="flex items-center space-x-3"
+              whileHover={{ scale: 1.05 }}
+              transition={{ type: "spring", stiffness: 400, damping: 25 }}
+            >
+              <div className="relative">
+                <Image 
+                  src="/kata-logo.png" 
+                  alt="KATA Protocol" 
+                  width={40}
+                  height={40}
+                  className="h-10 w-10 rounded-xl object-contain"
+                />
+                <div className="absolute -inset-0.5 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 opacity-20 blur"></div>
               </div>
-              <div className="absolute -inset-0.5 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 opacity-20 blur"></div>
-            </div>
-            <div>
-              <h1 className="text-xl font-bold gradient-text">KATA</h1>
-              <p className="text-xs text-muted-foreground">Protocol</p>
-            </div>
-          </motion.div>
+              <div>
+                <h1 className="text-xl font-bold gradient-text">KATA</h1>
+                <p className="text-xs text-muted-foreground">Protocol</p>
+              </div>
+            </motion.div>
+          </Link>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-1">

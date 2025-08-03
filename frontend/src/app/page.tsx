@@ -195,8 +195,8 @@ export default function HomePage() {
                 {[
                   { icon: Clock, title: "TWAP Orders", desc: "Time-weighted execution" },
                   { icon: TrendingUp, title: "Limit Orders", desc: "Set your target price" },
-                  { icon: Shield, title: "Cross-Chain", desc: "Ethereum & Sui support" },
-                  { icon: Zap, title: "Low Fees", desc: "Optimized gas usage" },
+                  { icon: Shield, title: "Fusion+", desc: "Cross-chain atomic swaps" },
+                  { icon: Zap, title: "Dutch Auctions", desc: "MEV protection built-in" },
                 ].map((feature, index) => (
                   <motion.div
                     key={feature.title}
