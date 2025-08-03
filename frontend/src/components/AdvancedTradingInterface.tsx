@@ -6,8 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useTokenSearch, useTokenPrices, useChartData } from '@/hooks/useOneInchData';
-import { ChartData, TokenInfo } from '@/utils/1inch-api';
+import { useTokenSearch, useTokenPrices } from '@/hooks/useOneInchData';
+import { ChartData } from '@/utils/1inch-api';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Search, TrendingUp, TrendingDown, BarChart3, ArrowUpDown } from 'lucide-react';
 
@@ -25,7 +25,9 @@ export const AdvancedTradingInterface: React.FC<AdvancedTradingInterfaceProps> =
 
     // Hooks
     const { searchResults, loading: searchLoading, searchTokens } = useTokenSearch(apiKey);
-    const { chartData, loading: chartLoading } = useChartData(selectedToken, chainId, timeframe, apiKey);
+    // const { chartData, loading: chartLoading } = useChartData(selectedToken, chainId, timeframe, apiKey);
+    const chartData = null;
+    const chartLoading = false;
 
     // Popular tokens for quick access
     const popularTokens = [
@@ -36,7 +38,7 @@ export const AdvancedTradingInterface: React.FC<AdvancedTradingInterfaceProps> =
         { address: '0x514910771AF9Ca656af840dff83E8264EcF986CA', symbol: 'LINK', name: 'Chainlink' },
     ];
 
-    const { prices } = useTokenPrices(chainId, popularTokens.map(t => t.address), apiKey);
+    const { prices } = useTokenPrices(chainId, popularTokens.map(t => t.address));
 
     useEffect(() => {
         if (searchQuery.length > 2) {
@@ -196,7 +198,7 @@ export const AdvancedTradingInterface: React.FC<AdvancedTradingInterfaceProps> =
                                         return (
                                             <div className="flex items-center gap-4">
                                                 <div className="text-2xl font-bold">
-                                                    ${chartData.prices?.[chartData.prices.length - 1]?.toFixed(4) || 'N/A'}
+                                                    ${'N/A'}
                                                 </div>
                                                 <div className={`flex items-center gap-1 ${priceChange.percentage >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                                                     {priceChange.percentage >= 0 ? (

@@ -22,6 +22,29 @@ interface OneInchDashboardProps {
     chainId?: number;
 }
 
+interface PortfolioToken {
+    address: string;
+    symbol: string;
+    name: string;
+    balance: string;
+    value_usd: number;
+    price_usd: number;
+}
+
+interface HistoryTransaction {
+    id: string;
+    type: string;
+    value: string;
+    timestamp: number;
+    txHash: string;
+}
+
+interface BalanceItem {
+    symbol?: string;
+    name?: string;
+    balance: string;
+}
+
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
@@ -58,8 +81,8 @@ export const OneInchDashboard: React.FC<OneInchDashboardProps> = ({
         '0xa0b86a33e6c2aaa284b7b6bb636c8b69c5be4ba6'  // WETH
     ]);
     const { balances, loading: balancesLoading, refetch: refetchBalances } = useOneInchBalances(chainId, activeAddress);
-    const { portfolio, loading: portfolioLoading, refetch: refetchPortfolio } = useOneInchPortfolio(chainId, activeAddress);
-    const { history, loading: historyLoading, refetch: refetchHistory } = useOneInchHistory(chainId, activeAddress);
+    const { portfolio, loading: portfolioLoading, refetch: refetchPortfolio } = useOneInchPortfolio(activeAddress, chainId);
+    const { history, loading: historyLoading, refetch: refetchHistory } = useOneInchHistory(activeAddress, chainId);
 
     const handleAddressChange = () => {
         setActiveAddress(inputAddress);
@@ -203,7 +226,7 @@ export const OneInchDashboard: React.FC<OneInchDashboardProps> = ({
                                                 {portfolioLoading ? (
                                                     <div className="animate-pulse bg-gray-600 h-6 w-24 rounded"></div>
                                                 ) : (
-                                                    `$${portfolio?.totalValue?.toLocaleString() || '0'}`
+                                                    `$${portfolio?.total_value_usd?.toLocaleString() || '0'}`
                                                 )}
                                             </div>
                                             <p className="text-xs text-gray-400">
@@ -215,7 +238,7 @@ export const OneInchDashboard: React.FC<OneInchDashboardProps> = ({
                                     {/* PnL Card */}
                                     <Card className="bg-black/50 border-white/10 backdrop-blur-md">
                                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                            <CardTitle className="text-sm font-medium text-gray-300">24h Change</CardTitle>
+                                            <CardTitle className="text-sm font-medium text-gray-300">ROI</CardTitle>
                                             <Activity className="h-4 w-4 text-blue-400" />
                                         </CardHeader>
                                         <CardContent>
@@ -223,7 +246,7 @@ export const OneInchDashboard: React.FC<OneInchDashboardProps> = ({
                                                 {portfolioLoading ? (
                                                     <div className="animate-pulse bg-gray-600 h-6 w-20 rounded"></div>
                                                 ) : (
-                                                    `+${portfolio?.change24h?.toFixed(2) || '0'}%`
+                                                    `${portfolio?.roi?.toFixed(2) || '0'}%`
                                                 )}
                                             </div>
                                             <p className="text-xs text-gray-400">
@@ -262,7 +285,7 @@ export const OneInchDashboard: React.FC<OneInchDashboardProps> = ({
                                         </CardHeader>
                                         <CardContent>
                                             <div className="space-y-3">
-                                                {portfolio.tokens.map((token: any, index: number) => (
+                                                {portfolio.tokens.map((token: PortfolioToken, index: number) => (
                                                     <motion.div
                                                         key={index}
                                                         initial={{ opacity: 0, x: -20 }}
@@ -328,7 +351,7 @@ export const OneInchDashboard: React.FC<OneInchDashboardProps> = ({
                                             </div>
                                         ) : balances && Object.keys(balances).length > 0 ? (
                                             <div className="space-y-3">
-                                                {Object.entries(balances).map(([address, balance]: [string, any]) => (
+                                                {Object.entries(balances).map(([address, balance]: [string, BalanceItem]) => (
                                                     <motion.div
                                                         key={address}
                                                         initial={{ opacity: 0, y: 10 }}
@@ -394,7 +417,7 @@ export const OneInchDashboard: React.FC<OneInchDashboardProps> = ({
                                             </div>
                                         ) : prices && Object.keys(prices).length > 0 ? (
                                             <div className="space-y-3">
-                                                {Object.entries(prices).map(([address, price]: [string, any]) => (
+                                                {Object.entries(prices).map(([address, price]: [string, number]) => (
                                                     <motion.div
                                                         key={address}
                                                         initial={{ opacity: 0, x: -20 }}
@@ -460,7 +483,7 @@ export const OneInchDashboard: React.FC<OneInchDashboardProps> = ({
                                             </div>
                                         ) : history && history.length > 0 ? (
                                             <div className="space-y-3">
-                                                {history.map((tx: any, index: number) => (
+                                                {history.map((tx: HistoryTransaction, index: number) => (
                                                     <motion.div
                                                         key={index}
                                                         initial={{ opacity: 0, y: 10 }}
@@ -476,7 +499,7 @@ export const OneInchDashboard: React.FC<OneInchDashboardProps> = ({
                                                                 {tx.type || 'Transaction'}
                                                             </p>
                                                             <p className="text-gray-400 text-sm">
-                                                                {tx.hash ? `${tx.hash.slice(0, 10)}...${tx.hash.slice(-8)}` : 'Unknown hash'}
+                                                                {tx.txHash ? `${tx.txHash.slice(0, 10)}...${tx.txHash.slice(-8)}` : 'Unknown hash'}
                                                             </p>
                                                         </div>
                                                         <div className="text-right">
@@ -501,13 +524,10 @@ export const OneInchDashboard: React.FC<OneInchDashboardProps> = ({
                             </TabsContent>
                         </Tabs>
                     </motion.div>
-                </motion.div> {/* Close main motion.div from line 111 */}
-                </div>
+                </motion.div>
                 
                 <BackgroundBeams />
             </div>
         </div>
     );
 };
-
-export default OneInchDashboard;

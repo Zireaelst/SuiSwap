@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { getOneInchAPI, TokenInfo, WalletTransaction, TokenBalance, PortfolioData, ChartData } from '@/utils/1inch-api';
+import { getOneInchAPI, TokenInfo, WalletTransaction, TokenBalance, PortfolioData } from '@/utils/1inch-api';
 
 // Hook for token prices
 export const useTokenPrices = (chainId: number, tokenAddresses: string[]) => {

@@ -229,9 +229,7 @@ const WalletAnalysis: React.FC<WalletAnalysisProps> = ({ walletAddress }) => {
 };
 
 // Market Analysis Component
-interface MarketAnalysisProps {}
-
-const MarketAnalysis: React.FC<MarketAnalysisProps> = () => {
+const MarketAnalysis: React.FC = () => {
   const popularTokens = [
     '0xA0b86a33E6441b9c0Ec4AD851c1e4Ec3C02Db0b2', // USDC
     '0x6B175474E89094C44Da98b954EedeAC495271d0F', // DAI
