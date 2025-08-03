@@ -1,169 +1,188 @@
 "use client";
 import React, { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { NavigationHeader } from "@/components/NavigationHeader";
-import { Card, CardContent } from "@/components/ui/card";
+import { ArbitrageDashboard } from "@/components/ArbitrageDashboard";
+import { ModernSwapInterface } from "@/components/ModernSwapInterface";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { BackgroundBeams } from "@/components/ui/background-beams";
 import {
   ArrowUpDown,
-  Settings,
-  ChevronDown,
-  Clock,
-  TrendingUp,
-  Zap,
-  RefreshCw,
-  AlertCircle,
-  CheckCircle,
-  ArrowRight,
-  Wallet,
+  Target,
   Shield,
-  Timer,
+  RefreshCw,
+  CheckCircle,
 } from "lucide-react";
 
-interface Token {
-  symbol: string;
-  name: string;
-  logo: string;
-  balance: string;
-  price: number;
-  chain: "ethereum" | "sui";
+// MEV Protection Interface Component
+interface MEVProtectionInterfaceProps {
+  enabled: boolean;
+  onToggle: (enabled: boolean) => void;
+  riskLevel: 'low' | 'medium' | 'high';
+  onRiskLevelChange: (level: 'low' | 'medium' | 'high') => void;
 }
 
-const tokens: Token[] = [
-  { symbol: "ETH", name: "Ethereum", logo: "🔷", balance: "2.5", price: 2450, chain: "ethereum" },
-  { symbol: "USDC", name: "USD Coin", logo: "💵", balance: "1,250.00", price: 1, chain: "ethereum" },
-  { symbol: "SUI", name: "Sui", logo: "🌊", balance: "500.0", price: 1.45, chain: "sui" },
-  { symbol: "WBTC", name: "Wrapped Bitcoin", logo: "₿", balance: "0.05", price: 60000, chain: "ethereum" },
-];
+const MEVProtectionInterface: React.FC<MEVProtectionInterfaceProps> = ({
+  enabled,
+  onToggle,
+  riskLevel,
+  onRiskLevelChange
+}) => {
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const protectionStats = {
+    transactionsProtected: 1247,
+    mevBlocked: '$127K',
+    successRate: '94.2%',
+    gasOptimized: '15%'
+  };
 
-const orderTypes = [
-  {
-    id: "swap",
-    label: "Instant Swap",
-    icon: ArrowUpDown,
-    description: "Execute immediately at market price",
-    time: "~30 seconds",
-    gas: "Medium",
-  },
-  {
-    id: "limit",
-    label: "Limit Order",
-    icon: TrendingUp,
-    description: "Set your target price and wait",
-    time: "When price reached",
-    gas: "Low",
-  },
-  {
-    id: "twap",
-    label: "TWAP Order",
-    icon: Clock,
-    description: "Split large orders over time",
-    time: "Custom duration",
-    gas: "Optimized",
-  },
-];
+  const simulateAnalysis = async () => {
+    setIsAnalyzing(true);
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    setIsAnalyzing(false);
+  };
+
+  return (
+    <div className="space-y-6 max-w-4xl mx-auto">
+      <Card className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 shadow-lg">
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-blue-500/20 rounded-lg flex items-center justify-center">
+                <Shield className="h-5 w-5 text-blue-400" />
+              </div>
+              <span className="text-white">MEV Protection Service</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <span className={`text-sm font-medium ${enabled ? 'text-green-400' : 'text-gray-400'}`}>
+                {enabled ? 'Enabled' : 'Disabled'}
+              </span>
+              <button
+                onClick={() => onToggle(!enabled)}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                  enabled ? 'bg-blue-600' : 'bg-gray-600'
+                }`}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    enabled ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+                />
+              </button>
+            </div>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* Protection Stats */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="bg-gradient-to-r from-green-500/20 to-emerald-500/20 p-4 rounded-lg border border-green-500/30">
+              <div className="text-sm text-gray-400 mb-1">Protected Txs</div>
+              <div className="text-xl font-bold text-white">{protectionStats.transactionsProtected}</div>
+            </div>
+            <div className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 p-4 rounded-lg border border-purple-500/30">
+              <div className="text-sm text-gray-400 mb-1">MEV Blocked</div>
+              <div className="text-xl font-bold text-white">{protectionStats.mevBlocked}</div>
+            </div>
+            <div className="bg-gradient-to-r from-blue-500/20 to-cyan-500/20 p-4 rounded-lg border border-blue-500/30">
+              <div className="text-sm text-gray-400 mb-1">Success Rate</div>
+              <div className="text-xl font-bold text-white">{protectionStats.successRate}</div>
+            </div>
+            <div className="bg-gradient-to-r from-orange-500/20 to-yellow-500/20 p-4 rounded-lg border border-orange-500/30">
+              <div className="text-sm text-gray-400 mb-1">Gas Saved</div>
+              <div className="text-xl font-bold text-white">{protectionStats.gasOptimized}</div>
+            </div>
+          </div>
+
+          {/* Protection Level */}
+          <div className="space-y-3">
+            <label className="text-sm font-medium text-white">Protection Level</label>
+            <div className="flex space-x-2">
+              {(['low', 'medium', 'high'] as const).map((level) => (
+                <button
+                  key={level}
+                  onClick={() => onRiskLevelChange(level)}
+                  className={`px-4 py-2 rounded-lg font-medium transition-all capitalize ${
+                    riskLevel === level
+                      ? 'bg-blue-600 text-white border border-blue-500'
+                      : 'bg-slate-700 text-gray-300 border border-slate-600 hover:bg-slate-600'
+                  }`}
+                >
+                  {level}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Real-time Analysis */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="font-medium text-white">Real-time MEV Analysis</h3>
+              <Button
+                onClick={simulateAnalysis}
+                disabled={isAnalyzing}
+                size="sm"
+                variant="outline"
+                className="bg-slate-700 border-slate-600 text-gray-300 hover:bg-slate-600"
+              >
+                {isAnalyzing ? (
+                  <>
+                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                    Analyzing...
+                  </>
+                ) : (
+                  'Run Analysis'
+                )}
+              </Button>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="p-4 bg-green-500/10 rounded-lg border border-green-500/30">
+                <div className="flex items-center space-x-2 mb-2">
+                  <CheckCircle className="h-4 w-4 text-green-400" />
+                  <span className="font-medium text-green-300">Protection Active</span>
+                </div>
+                <ul className="text-sm text-green-400 space-y-1">
+                  <li>• Flashbots private mempool</li>
+                  <li>• Front-running detection</li>
+                  <li>• Sandwich attack prevention</li>
+                </ul>
+              </div>
+
+              <div className="p-4 bg-blue-500/10 rounded-lg border border-blue-500/30">
+                <div className="font-medium text-blue-300 mb-2">Current Status</div>
+                <div className="text-sm text-blue-400 space-y-1">
+                  <div>• Network congestion: Low</div>
+                  <div>• MEV activity: Normal</div>
+                  <div>• Gas price: Optimal</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
 
 export default function TradingPage() {
-  const [fromToken, setFromToken] = useState(tokens[0]);
-  const [toToken, setToToken] = useState(tokens[1]);
-  const [fromAmount, setFromAmount] = useState("");
-  const [toAmount, setToAmount] = useState("");
-  const [orderType, setOrderType] = useState("swap");
-  const [showTokenSelector, setShowTokenSelector] = useState<"from" | "to" | null>(null);
-  const [slippage, setSlippage] = useState("0.5");
-  const [isProcessing, setIsProcessing] = useState(false);
+  const [activeTab, setActiveTab] = useState<'swap' | 'arbitrage' | 'mev'>('swap');
+  const [mevProtectionEnabled, setMevProtectionEnabled] = useState(true);
+  const [mevRiskLevel, setMevRiskLevel] = useState<'low' | 'medium' | 'high'>('low');
 
-  const handleSwapTokens = () => {
-    const temp = fromToken;
-    setFromToken(toToken);
-    setToToken(temp);
-    setFromAmount(toAmount);
-    setToAmount(fromAmount);
-  };
-
-  const handleTrade = async () => {
-    setIsProcessing(true);
-    // Simulate trade processing
-    await new Promise(resolve => setTimeout(resolve, 3000));
-    setIsProcessing(false);
-  };
-
-  const calculateRoute = () => {
-    if (!fromAmount || !fromToken || !toToken) return null;
-    const amount = parseFloat(fromAmount);
-    const estimatedOutput = (amount * fromToken.price) / toToken.price;
-    setToAmount(estimatedOutput.toFixed(6));
-  };
-
-  React.useEffect(() => {
-    calculateRoute();
-  }, [fromAmount, fromToken, toToken]);
-
-  const TokenSelector = ({ 
-    isOpen, 
-    onClose, 
-    onSelect, 
-    currentToken,
-    type 
-  }: {
-    isOpen: boolean;
-    onClose: () => void;
-    onSelect: (token: Token) => void;
-    currentToken: Token;
-    type: "from" | "to";
-  }) => (
-    <AnimatePresence>
-      {isOpen && (
-        <motion.div
-          className="absolute top-full left-0 right-0 mt-2 bg-background/95 backdrop-blur-lg border border-border rounded-xl shadow-2xl z-50 max-h-60 overflow-y-auto"
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -10 }}
-          transition={{ duration: 0.2 }}
-        >
-          {tokens
-            .filter(token => token.symbol !== currentToken.symbol)
-            .map((token) => (
-              <motion.button
-                key={token.symbol}
-                className="w-full flex items-center justify-between p-4 hover:bg-accent/50 transition-colors first:rounded-t-xl last:rounded-b-xl"
-                onClick={() => {
-                  onSelect(token);
-                  onClose();
-                }}
-                whileHover={{ x: 4 }}
-              >
-                <div className="flex items-center space-x-3">
-                  <span className="text-2xl">{token.logo}</span>
-                  <div className="text-left">
-                    <div className="font-semibold">{token.symbol}</div>
-                    <div className="text-xs text-muted-foreground">{token.name}</div>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <div className="text-sm font-medium">{token.balance}</div>
-                  <div className="text-xs text-muted-foreground">
-                    ${token.price.toLocaleString()}
-                  </div>
-                </div>
-              </motion.button>
-            ))}
-        </motion.div>
-      )}
-    </AnimatePresence>
-  );
+  const tradingTabs = [
+    { id: 'swap' as const, label: 'Instant Swap', icon: ArrowUpDown },
+    { id: 'arbitrage' as const, label: 'Arbitrage', icon: Target },
+    { id: 'mev' as const, label: 'MEV Protection', icon: Shield }
+  ];
 
   return (
     <main className="relative min-h-screen">
       <BackgroundBeams />
       <NavigationHeader />
 
-      <section className="relative px-4 py-20 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-4xl">
-          {/* Header */}
+      <section className="relative px-4 py-16 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl">
           <motion.div
             className="text-center mb-12"
             initial={{ opacity: 0, y: 20 }}
@@ -171,278 +190,66 @@ export default function TradingPage() {
             transition={{ duration: 0.6 }}
           >
             <h1 className="text-3xl md:text-4xl font-bold mb-4">
-              Smart <span className="gradient-text">Trading</span>
+              Advanced <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Trading Hub</span>
             </h1>
-            <p className="text-muted-foreground">
-              Choose your strategy and trade with confidence
+            <p className="text-gray-600 dark:text-gray-400">
+              Swap, arbitrage, and MEV protection in one powerful interface
             </p>
           </motion.div>
 
-          <div className="grid lg:grid-cols-3 gap-8">
-            {/* Order Type Selection */}
-            <motion.div
-              className="lg:col-span-1"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-            >
-              <Card className="glassmorphism border-0">
-                <CardContent className="p-6">
-                  <h3 className="font-semibold mb-4">Trading Strategy</h3>
-                  <div className="space-y-3">
-                    {orderTypes.map((type) => (
-                      <motion.button
-                        key={type.id}
-                        className={`w-full p-4 rounded-xl text-left transition-all ${
-                          orderType === type.id
-                            ? "bg-primary/20 border border-primary/30"
-                            : "bg-accent/30 hover:bg-accent/50"
-                        }`}
-                        onClick={() => setOrderType(type.id)}
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                      >
-                        <div className="flex items-center space-x-3 mb-2">
-                          <type.icon className="h-5 w-5" />
-                          <span className="font-medium">{type.label}</span>
-                        </div>
-                        <p className="text-xs text-muted-foreground mb-2">
-                          {type.description}
-                        </p>
-                        <div className="flex items-center justify-between text-xs">
-                          <div className="flex items-center space-x-1">
-                            <Timer className="h-3 w-3" />
-                            <span>{type.time}</span>
-                          </div>
-                          <Badge variant="secondary" className="text-xs">
-                            {type.gas} Gas
-                          </Badge>
-                        </div>
-                      </motion.button>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
+          {/* Trading Tabs */}
+          <motion.div
+            className="flex justify-center mb-8"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+          >
+            <div className="flex space-x-2 p-1 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg border border-gray-200 dark:border-gray-700">
+              {tradingTabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex items-center space-x-2 px-4 py-2 rounded-md font-medium transition-all ${
+                    activeTab === tab.id
+                      ? 'bg-blue-500 text-white shadow-lg'
+                      : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700'
+                  }`}
+                >
+                  <tab.icon className="h-4 w-4" />
+                  <span>{tab.label}</span>
+                </button>
+              ))}
+            </div>
+          </motion.div>
 
-            {/* Trading Interface */}
-            <motion.div
-              className="lg:col-span-2"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6, delay: 0.3 }}
-            >
-              <Card className="glassmorphism border-0">
-                <CardContent className="p-8">
-                  <div className="space-y-6">
-                    {/* From Token */}
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <label className="text-sm font-medium">From</label>
-                        <div className="flex items-center space-x-2">
-                          <Badge variant="outline" className="text-xs">
-                            {fromToken.chain === "ethereum" ? "Ethereum" : "Sui"}
-                          </Badge>
-                          <span className="text-xs text-muted-foreground">
-                            Balance: {fromToken.balance}
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="relative">
-                        <Button
-                          variant="outline"
-                          className="w-full justify-between h-16 glassmorphism border-border/50"
-                          onClick={() => setShowTokenSelector("from")}
-                        >
-                          <div className="flex items-center space-x-3">
-                            <span className="text-2xl">{fromToken.logo}</span>
-                            <div className="text-left">
-                              <div className="font-semibold">{fromToken.symbol}</div>
-                              <div className="text-xs text-muted-foreground">{fromToken.name}</div>
-                            </div>
-                          </div>
-                          <ChevronDown className="h-4 w-4" />
-                        </Button>
-                        
-                        <TokenSelector
-                          isOpen={showTokenSelector === "from"}
-                          onClose={() => setShowTokenSelector(null)}
-                          onSelect={setFromToken}
-                          currentToken={fromToken}
-                          type="from"
-                        />
-                      </div>
-
-                      <div className="relative">
-                        <Input
-                          type="number"
-                          placeholder="0.0"
-                          value={fromAmount}
-                          onChange={(e) => setFromAmount(e.target.value)}
-                          className="h-16 text-2xl font-semibold glassmorphism border-border/50 pr-20"
-                        />
-                        <Button
-                          variant="secondary"
-                          size="sm"
-                          className="absolute right-3 top-1/2 -translate-y-1/2"
-                          onClick={() => setFromAmount(fromToken.balance)}
-                        >
-                          MAX
-                        </Button>
-                      </div>
-                    </div>
-
-                    {/* Swap Button */}
-                    <div className="flex justify-center">
-                      <motion.button
-                        onClick={handleSwapTokens}
-                        className="p-4 rounded-full glassmorphism hover:bg-accent transition-colors"
-                        whileHover={{ scale: 1.1, rotate: 180 }}
-                        whileTap={{ scale: 0.9 }}
-                      >
-                        <ArrowUpDown className="h-6 w-6" />
-                      </motion.button>
-                    </div>
-
-                    {/* To Token */}
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <label className="text-sm font-medium">To</label>
-                        <div className="flex items-center space-x-2">
-                          <Badge variant="outline" className="text-xs">
-                            {toToken.chain === "ethereum" ? "Ethereum" : "Sui"}
-                          </Badge>
-                          <span className="text-xs text-muted-foreground">
-                            Balance: {toToken.balance}
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="relative">
-                        <Button
-                          variant="outline"
-                          className="w-full justify-between h-16 glassmorphism border-border/50"
-                          onClick={() => setShowTokenSelector("to")}
-                        >
-                          <div className="flex items-center space-x-3">
-                            <span className="text-2xl">{toToken.logo}</span>
-                            <div className="text-left">
-                              <div className="font-semibold">{toToken.symbol}</div>
-                              <div className="text-xs text-muted-foreground">{toToken.name}</div>
-                            </div>
-                          </div>
-                          <ChevronDown className="h-4 w-4" />
-                        </Button>
-                        
-                        <TokenSelector
-                          isOpen={showTokenSelector === "to"}
-                          onClose={() => setShowTokenSelector(null)}
-                          onSelect={setToToken}
-                          currentToken={toToken}
-                          type="to"
-                        />
-                      </div>
-
-                      <div className="relative">
-                        <Input
-                          type="number"
-                          placeholder="0.0"
-                          value={toAmount}
-                          className="h-16 text-2xl font-semibold glassmorphism border-border/50"
-                          readOnly
-                        />
-                        {isProcessing && (
-                          <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                            <motion.div
-                              animate={{ rotate: 360 }}
-                              transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                            >
-                              <RefreshCw className="h-4 w-4 text-muted-foreground" />
-                            </motion.div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Trade Summary */}
-                    {fromAmount && toAmount && (
-                      <motion.div
-                        className="p-4 glassmorphism rounded-xl space-y-3"
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: "auto" }}
-                        transition={{ duration: 0.3 }}
-                      >
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-muted-foreground">Exchange Rate</span>
-                          <span>1 {fromToken.symbol} = {(toToken.price / fromToken.price).toFixed(6)} {toToken.symbol}</span>
-                        </div>
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-muted-foreground">Slippage Tolerance</span>
-                          <Badge variant="secondary">{slippage}%</Badge>
-                        </div>
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-muted-foreground">Estimated Gas</span>
-                          <span>~$12.50</span>
-                        </div>
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-muted-foreground">Route</span>
-                          <div className="flex items-center space-x-1">
-                            <CheckCircle className="h-3 w-3 text-green-500" />
-                            <span>Best Route Found</span>
-                          </div>
-                        </div>
-                      </motion.div>
-                    )}
-
-                    {/* Action Button */}
-                    <motion.div
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      <Button
-                        className="w-full h-14 text-lg font-semibold bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 disabled:opacity-50"
-                        disabled={!fromAmount || !toAmount || isProcessing}
-                        onClick={handleTrade}
-                      >
-                        {isProcessing ? (
-                          <div className="flex items-center space-x-2">
-                            <motion.div
-                              animate={{ rotate: 360 }}
-                              transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                            >
-                              <RefreshCw className="h-5 w-5" />
-                            </motion.div>
-                            <span>Processing...</span>
-                          </div>
-                        ) : (
-                          <div className="flex items-center space-x-2">
-                            {orderType === "swap" && <Zap className="h-5 w-5" />}
-                            {orderType === "limit" && <TrendingUp className="h-5 w-5" />}
-                            {orderType === "twap" && <Clock className="h-5 w-5" />}
-                            <span>
-                              {orderType === "swap" && "Execute Swap"}
-                              {orderType === "limit" && "Place Limit Order"}
-                              {orderType === "twap" && "Create TWAP Order"}
-                            </span>
-                            <ArrowRight className="h-5 w-5" />
-                          </div>
-                        )}
-                      </Button>
-                    </motion.div>
-
-                    {/* Security Notice */}
-                    <div className="flex items-center space-x-2 p-3 bg-blue-500/10 rounded-lg">
-                      <Shield className="h-4 w-4 text-blue-500" />
-                      <span className="text-xs text-muted-foreground">
-                        Your funds are secured by audited smart contracts
-                      </span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          </div>
+          {/* Dynamic Content Based on Active Tab */}
+          <motion.div
+            key={activeTab}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            {activeTab === 'swap' && (
+              <div className="max-w-4xl mx-auto">
+                <ModernSwapInterface />
+              </div>
+            )}
+            
+            {activeTab === 'arbitrage' && (
+              <div className="max-w-6xl mx-auto">
+                <ArbitrageDashboard />
+              </div>
+            )}
+            
+            {activeTab === 'mev' && (
+              <MEVProtectionInterface 
+                enabled={mevProtectionEnabled}
+                onToggle={setMevProtectionEnabled}
+                riskLevel={mevRiskLevel}
+                onRiskLevelChange={setMevRiskLevel}
+              />
+            )}
+          </motion.div>
         </div>
       </section>
     </main>
